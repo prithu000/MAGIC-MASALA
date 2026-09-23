@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}My Orders — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  <div class="flex flex-col lg:flex-row gap-8">
+    
+    {% include "accounts/_nav.html" %}
+
+    <main class="flex-1 space-y-6">
+      
+      <div class="bg-white rounded-2xl border border-stone-100 p-6 shadow-xs">
+        <div class="mb-6 pb-4 border-b border-stone-100 flex items-center justify-between">
+          <div>
+            <h1 class="font-serif text-2xl font-bold text-stone-900">Order History</h1>
+            <p class="text-stone-500 text-xs mt-0.5">Track, review, or reorder from your past spice orders</p>
+          </div>
+          <span class="text-xs text-stone-400 font-semibold">{{ orders.count }} Order{{ orders.count|pluralize }}</span>
+        </div>
+
+        {% if orders %}
+        <div class="space-y-4">
+          {% for order in orders %}
+          <div class="border border-stone-200/70 rounded-2xl p-5 hover:border-amber-300 transition-colors">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+              <div>
+                <div class="flex items-center gap-3">
+                  <span class="font-bold text-base text-stone-900">Order #{{ order.order_number }}</span>
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold
+                    {% if order.order_status == 'delivered' %}bg-green-100 text-green-800
+                    {% elif order.order_status == 'cancelled' %}bg-red-100 text-red-800
+                    {% else %}bg-amber-100 text-amber-800{% endif %}">
+                    {{ order.get_order_status_display }}
+                  </span>
+                </div>
+                <div class="text-xs text-stone-400 mt-1"> Placed on {{ order.created_at|date:"M d, Y • h:i A" }}
+                </div>
+              </div>
+              <div class="text-left sm:text-right">
+                <div class="text-xs text-stone-400">Total Amount</div>
+                <div class="font-bold text-lg text-masala-red">₹{{ order.total|floatformat:0 }}</div>
+              </div>
+            </div>
+
+            {# Items preview #}
+            <div class="py-3 text-xs text-stone-600">
+              <span class="font-semibold text-stone-700">Delivering to:</span> {{ order.shipping_full_name }}, {{ order.shipping_city }} — {{ order.shipping_pincode }}
+            </div>
+
+            <div class="pt-3 border-t border-stone-100 flex items-center justify-between">
+              <span class="text-xs text-stone-400">{{ order.items.count }} item{{ order.items.count|pluralize }}</span>
+              <a href="{% url 'accounts:order_detail' order.order_number %}" class="btn btn-secondary btn-sm text-xs font-semibold"> View Full Details & Tracking →
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16 space-y-4">
+          <div class="w-16 h-16 bg-cream rounded-full flex items-center justify-center mx-auto text-stone-400">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          </div>
+          <h2 class="font-serif text-xl font-bold text-stone-800">No orders found</h2>
+          <p class="text-stone-500 text-sm max-w-sm mx-auto">You have not placed any orders yet. Fresh stone-ground spices are waiting for you!</p>
+          <a href="/shop/" class="btn btn-primary btn-sm">Explore Masala Catalog</a>
+        </div>
+        {% endif %}
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+{% endblock %}

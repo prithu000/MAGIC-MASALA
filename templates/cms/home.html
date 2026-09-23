@@ -1,0 +1,668 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}{{ site_settings.brand_name }} — Fresh Ground Spices, Delivered{% endblock %}
+{% block meta_description %}{{ site_settings.meta_description|default:"MAGIC MASALA — whole spices stone-ground fresh. No preservatives, no fillers. Order online, delivered across India." }}{% endblock %}
+
+{% block extra_json_ld %}
+  {% if organization_json_ld %}
+    <script type="application/ld+json">{{ organization_json_ld|safe }}</script>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+{# ── Hero Slider (Admin Managed for Homepage) ── #}
+{% include "partials/_hero_slider.html" %}
+
+
+{# ── Trust Badges ── #}
+{# ── Trust Badges Strip (Desktop 4-Col, Mobile Auto-Slide Patti) ── #}
+<div class="trust-strip" x-data="{
+ current: 0,
+ total: 4,
+ timer: null,
+ touchStartX: 0,
+ touchEndX: 0,
+ start() {
+ this.stop();
+ this.timer = setInterval(() => { this.next(); }, 2800);
+       },
+ stop() {
+ if (this.timer) {
+ clearInterval(this.timer);
+ this.timer = null;
+         }
+       },
+ next() {
+ this.current = (this.current + 1) % this.total;
+       },
+ prev() {
+ this.current = (this.current - 1 + this.total) % this.total;
+       },
+ handleTouchStart(e) {
+ this.touchStartX = e.changedTouches[0].screenX;
+       },
+ handleTouchEnd(e) {
+ this.touchEndX = e.changedTouches[0].screenX;
+ if (this.touchStartX - this.touchEndX > 40) this.next();
+ if (this.touchEndX - this.touchStartX > 40) this.prev();
+       }
+     }" x-init="start()"
+     @mouseenter="stop()"
+     @mouseleave="start()"
+     @touchstart.passive="handleTouchStart($event)"
+     @touchend.passive="handleTouchEnd($event)">
+
+  {# Desktop View (>= 768px): All 4 in clean row #}
+  <div class="container trust-desktop-grid">
+    <div class="trust-item">
+      <div class="trust-icon-box">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+      </div>
+      <div><div class="trust-title">FSSAI Certified</div><div class="trust-desc">100% food safe</div></div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon-box">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+      </div>
+      <div><div class="trust-title">No Preservatives</div><div class="trust-desc">Pure & natural</div></div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon-box">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      </div>
+      <div><div class="trust-title">Stone-Ground Fresh</div><div class="trust-desc">Same-week grinding</div></div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon-box">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      </div>
+      <div><div class="trust-title">Pan-India Delivery</div><div class="trust-desc">Fast & tracked</div></div>
+    </div>
+  </div>
+
+  {# Mobile View (< 768px): Compact Patti Slider #}
+  <div class="trust-mobile-slider">
+    <button type="button" class="trust-slider-btn prev" @click="prev()" aria-label="Previous">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+
+    <div class="trust-slider-viewport">
+      <div class="trust-slider-track" :style="`transform: translateX(-${current * 100}%);`">
+        <div class="trust-slide">
+          <span class="trust-slide-icon">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+          </span>
+          <span class="trust-slide-title">FSSAI Certified</span>
+          <span class="trust-slide-sep">·</span>
+          <span class="trust-slide-desc">100% Food Safe</span>
+        </div>
+
+        <div class="trust-slide">
+          <span class="trust-slide-icon">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          </span>
+          <span class="trust-slide-title">No Preservatives</span>
+          <span class="trust-slide-sep">·</span>
+          <span class="trust-slide-desc">Pure & Natural</span>
+        </div>
+
+        <div class="trust-slide">
+          <span class="trust-slide-icon">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          </span>
+          <span class="trust-slide-title">Stone-Ground Fresh</span>
+          <span class="trust-slide-sep">·</span>
+          <span class="trust-slide-desc">Same-Week Grinding</span>
+        </div>
+
+        <div class="trust-slide">
+          <span class="trust-slide-icon">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          </span>
+          <span class="trust-slide-title">Pan-India Delivery</span>
+          <span class="trust-slide-sep">·</span>
+          <span class="trust-slide-desc">Fast & Tracked</span>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="trust-slider-btn next" @click="next()" aria-label="Next">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+    </button>
+
+    <div class="trust-dots">
+      <button type="button" class="trust-dot" :class="{ 'active': current === 0 }" @click="current = 0" aria-label="1"></button>
+      <button type="button" class="trust-dot" :class="{ 'active': current === 1 }" @click="current = 1" aria-label="2"></button>
+      <button type="button" class="trust-dot" :class="{ 'active': current === 2 }" @click="current = 2" aria-label="3"></button>
+      <button type="button" class="trust-dot" :class="{ 'active': current === 3 }" @click="current = 3" aria-label="4"></button>
+    </div>
+  </div>
+</div>
+
+
+{# ── Shop by Category (Framer-Motion Swipe Experience) ── #}
+{% if categories %}
+<section class="section category-framer-section bg-cream-warm" id="shop-by-category" aria-label="Shop Masala by Category">
+  <div class="container">
+    
+    <!-- Top Header with Controls -->
+    <div class="category-framer-header">
+      <div class="category-framer-header__text">
+        <div class="section-kicker">
+          <svg class="kicker-sparkle" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.2 7.6.4-5.8 4.8 1.8 7.4-6-4.6-6 4.6 1.8-7.4-5.8-4.8 7.6-.4z"/></svg>
+          <span>Artisanal Heritage Selection</span>
+        </div>
+        <h2 class="section-title">Shop by Category</h2>
+        <p class="section-subtitle">Every masala has a story — find the stone-ground blend that makes your dish truly authentic.</p>
+      </div>
+
+      <!-- Navigation & Swipe Controls -->
+      <div class="category-framer-controls">
+        <div class="category-framer-swipe-hint" aria-hidden="true">
+          <span class="swipe-hint-dot"></span>
+          <span>Drag or Swipe</span>
+        </div>
+        <div class="category-framer-nav-buttons">
+          <button type="button" class="framer-nav-btn framer-nav-btn--prev" id="cat-nav-prev" aria-label="Previous categories">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button type="button" class="framer-nav-btn framer-nav-btn--next" id="cat-nav-next" aria-label="Next categories">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Framer Carousel Viewport & Track -->
+    <div class="category-framer-viewport" id="cat-carousel-viewport">
+      <div class="category-framer-track" id="cat-carousel-track">
+        {% for category in categories %}
+        <a href="{{ category.get_absolute_url }}" class="category-framer-card" id="cat-{{ category.slug }}" draggable="false">
+          
+          <!-- Background Image Wrap -->
+          <div class="category-framer-card__media">
+            {% if category.image %}
+              <img src="{{ category.image.url }}" alt="{{ category.name }}" loading="lazy" class="category-framer-card__img" draggable="false">
+            {% else %}
+              <div class="category-framer-card__placeholder">
+                <span>{{ category.name }}</span>
+              </div>
+            {% endif %}
+            <div class="category-framer-card__scrim-top"></div>
+            <div class="category-framer-card__scrim-bottom"></div>
+          </div>
+
+          <!-- Card Header Badges -->
+          <div class="category-framer-card__top">
+            <div class="category-framer-card__badge">
+              <span class="badge-dot"></span>
+              <span>{{ category.products.count|default:"4" }} Authentic Blends</span>
+            </div>
+            <span class="category-framer-card__index">0{{ forloop.counter }}</span>
+          </div>
+
+          <!-- Card Body / Content -->
+          <div class="category-framer-card__bottom">
+            <span class="category-framer-card__tag">
+              {% if category.slug == 'daily-cooking-pure-spices' %}Pure Kitchen Staples & Haldi-Mirch
+              {% elif category.slug == 'ready-masala-blends' %}Shahi Mughlai & Regional Curries
+              {% elif category.slug == 'herbs-salts-seasonings' %}Pink Rock Salt & Fragrant Methi
+              {% elif category.slug == 'pure-hing' %}100% Asli Danedaar Asafoetida
+              {% elif category.slug == 'chaat-drinks-refreshers' %}Zesty Street Chaat & Kadak Chai
+              {% elif category.slug == 'handcrafted-achaar' %}Traditional Mustard Oil Barni Pickles
+              {% else %}Stone-Ground Artisanal Blends{% endif %}
+            </span>
+            <h3 class="category-framer-card__title">{{ category.name }}</h3>
+            
+            <div class="category-framer-card__action">
+              <span class="action-label">Explore Collection</span>
+              <span class="action-circle">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </span>
+            </div>
+          </div>
+
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Framer Progress Indicator & Explore All -->
+    <div class="category-framer-footer">
+      <div class="category-framer-progress" id="cat-progress-track" aria-hidden="true">
+        <div class="category-framer-progress-bar" id="cat-progress-bar"></div>
+      </div>
+
+      <div class="category-framer-footer-cta">
+        <a href="/shop/" class="btn category-view-all-btn">
+          <span>Explore All 40+ Artisanal Blends</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endif %}
+
+
+{# ── PREMIUM SCROLL-DRIVEN PRODUCT ASSEMBLY EXPERIENCE ── #}
+<section class="magic-assembly-scroll-track" id="magic-assembly-section" aria-label="Magic Masala 10-Spice Assembly Experience">
+  
+  <div class="magic-assembly-viewport">
+
+    <div class="assembly-ambient-glow assembly-ambient-glow--center" aria-hidden="true"></div>
+    <div class="assembly-ambient-glow assembly-ambient-glow--gold" aria-hidden="true"></div>
+
+    {# ── INITIAL STAGE HEADER ── #}
+    <div class="assembly-header" id="assembly-header">
+      <div class="assembly-brand-badge">
+        <img src="/media/logo/magic_brand_oval_logo.png" alt="MU Magic" class="assembly-brand-logo" width="85" height="52">
+        <span class="assembly-brand-sub">Pure Stone-Ground • 100% Natural</span>
+      </div>
+      <h2 class="assembly-main-title">Aapki Rasoi, Aapka Swaad.</h2>
+      <p class="assembly-subtitle">Chahe ready-made combo chuno ya apna manpasand box banao — taaza stone-ground masale seedha aapke ghar.</p>
+      <button type="button" class="assembly-scroll-prompt" id="assembly-scroll-trigger" aria-label="Masale Dekhein">
+        <span class="scroll-prompt-text">Scroll Karke Masale Dekhein</span>
+        <div class="scroll-prompt-chevron">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </button>
+    </div>
+
+    {# ── STAGE ARENA (jars fly into box) ── #}
+    <div class="assembly-stage-arena" id="assembly-arena">
+      
+      {# COMBO BOX #}
+      <div class="assembly-box-anchor" id="assembly-box-anchor">
+        <div class="assembly-box-glow" aria-hidden="true"></div>
+        <div class="assembly-combo-box" id="assembly-combo-box">
+          <img src="/media/combos/spice_combo_box_cutout.png" alt="Magic Spice Combo Pack" class="assembly-box-img">
+          <div class="assembly-box-lip-overlay"></div>
+        </div>
+      </div>
+
+      {# 11 SPICE JARS — accurately cropped from user's lineup photo, pure transparent PNGs #}
+      <div class="assembly-jars-container" id="assembly-jars-container">
+
+        <div class="assembly-jar-item" id="jar-haldi">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_haldi.png" alt="Haldi Powder" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Haldi <small>125g</small></span>
+          </div>
+        </div>
+
+        <div class="assembly-jar-item" id="jar-dhaniya">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_dhaniya.png" alt="Dhaniya Powder" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Dhaniya <small>125g</small></span>
+          </div>
+        </div>
+
+        <div class="assembly-jar-item" id="jar-mirch">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_mirch.png" alt="Lal Mirch Powder" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Lal Mirch <small>125g</small></span>
+          </div>
+        </div>
+
+        <div class="assembly-jar-item" id="jar-kashmiri-mirch">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_kashmiri_mirch.png" alt="Kashmiri Mirch" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Kashmiri Mirch <small>100g</small></span>
+          </div>
+        </div>
+
+        <div class="assembly-jar-item" id="jar-jeera">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_jeera.png" alt="Jeera Powder" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Jeera <small>100g</small></span>
+          </div>
+        </div>
+
+        <div class="assembly-jar-item" id="jar-kasoori-methi">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_kasoori_methi.png" alt="Kasoori Methi" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Kasoori Methi <small>25g</small></span>
+          </div>
+        </div>
+
+        <div class="assembly-jar-item" id="jar-chana-masala">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_chana_masala.png" alt="Chana Masala" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Chana Masala <small>100g</small></span>
+          </div>
+        </div>
+
+        <div class="assembly-jar-item" id="jar-amchur">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_amchur.png" alt="Amchur Powder" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Amchur <small>100g</small></span>
+          </div>
+        </div>
+
+        <div class="assembly-jar-item" id="jar-chaat-masala">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_chaat_masala.png" alt="Chaat Masala" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Chaat Masala <small>100g</small></span>
+          </div>
+        </div>
+
+        <div class="assembly-jar-item" id="jar-saunf">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_saunf.png" alt="Saunf Powder" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Saunf <small>100g</small></span>
+          </div>
+        </div>
+
+        <div class="assembly-jar-item" id="jar-hing">
+          <div class="jar-card-inner">
+            <img src="/media/combos/anim_hing.png" alt="Bandhani Hing" class="jar-asset-img" loading="eager">
+            <span class="jar-floating-label">Bandhani Hing <small>20g</small></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    {# ── FINAL ASSEMBLED HERO CARD ── #}
+    <div class="assembly-final-hero" id="assembly-final-hero">
+      
+      {# Left: Admin-editable hero image #}
+      <div class="final-hero-visual-wrap">
+        {% if assembly_section and assembly_section.hero_image %}
+          <img src="{{ assembly_section.hero_image.url }}" 
+               alt="Magic Masala 10-Spice Collection Pack" 
+               class="final-hero-img" loading="lazy">
+        {% else %}
+          <img src="/media/combos/magic_10_spice_assembled_hero.jpg" 
+               alt="Magic Masala 10-Spice Collection Pack Assembled" 
+               class="final-hero-img" loading="lazy">
+        {% endif %}
+        <div class="final-hero-floating-pill">
+          <span class="pill-dot"></span>
+          <span>100% Stone-Ground Freshness</span>
+        </div>
+      </div>
+
+      {# Right: Content & Customer CTAs #}
+      <div class="final-hero-content">
+        <div class="final-hero-kicker">
+          <span class="kicker-brand" style="color: var(--color-gold); font-size: 0.75rem; letter-spacing: 0.08em; font-weight: 700;">CUSTOM 10-MASALA PACK</span>
+        </div>
+        
+        <h3 class="final-hero-title">Build Your Own Box</h3>
+        <p class="final-hero-lead">
+          Apni rasoi ki zaroorat ke hisaab se masale chuniye — har masala 100% stone-ground fresh aur bina preservative ke.
+        </p>
+
+        <div class="final-hero-price-pill" style="display: inline-flex; align-items: center; background: rgba(217, 119, 6, 0.16); border: 1px solid rgba(217, 119, 6, 0.4); padding: 0.4rem 0.95rem; border-radius: 9999px; margin-bottom: 1.15rem; width: fit-content;">
+          <span style="font-size: 0.95rem; font-weight: 800; color: #F59E0B;">Any 10 Masalas for ₹999</span>
+        </div>
+
+        {# Clean High-Impact CTA #}
+        <div class="final-hero-cta-wrap" style="display: flex; flex-direction: column; align-items: stretch; gap: 0.6rem;">
+          <a href="/combos/build/" class="btn btn-primary" id="assembly-build-box-btn" style="width: 100%; justify-content: center; font-size: 0.95rem; font-weight: 800; padding: 0.8rem 1.4rem; box-shadow: 0 4px 18px rgba(139, 30, 30, 0.4); letter-spacing: 0.02em;">
+            <span>Build Your Box &mdash; ₹999</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left: 0.35rem;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+
+          <a href="/combos/" class="final-hero-alt-link" id="assembly-view-combos-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: 600; text-decoration: none; padding: 0.3rem 0; transition: color 0.2s;">
+            <span>Or explore ready curated combos</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    {# Progress Indicator #}
+    <div class="assembly-progress-indicator" aria-hidden="true">
+      <div class="assembly-progress-bar-track">
+        <div class="assembly-progress-bar" id="assembly-progress-fill"></div>
+      </div>
+      <div class="assembly-progress-step" id="assembly-progress-step">Taaza Stone-Ground Masale</div>
+    </div>
+
+  </div>
+</section>
+
+
+{# ── Bestsellers ── #}
+{% if bestsellers %}
+<section class="section bestsellers-section bg-cream-warm">
+  <div class="container">
+    <div class="section-header text-center">
+      <span class="section-kicker"> Customer Favourites </span>
+      <h2 class="section-title">Bestsellers</h2>
+      <p class="section-subtitle">What most kitchens order first — and keep reordering week after week.</p>
+    </div>
+    <div class="product-grid">
+      {% for product in bestsellers %}
+        {% include "partials/_product_card.html" with product=product %}
+      {% endfor %}
+    </div>
+    <div class="text-center mt-6">
+      <a href="/shop/" class="btn btn-secondary category-view-all-btn">
+        <span>Browse All Products</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+{# ── Influencer Reels (Horizontal Slider, Single View, No Double Iframes) ── #}
+{% if influencer_reels %}
+<section class="section bg-cream-warm influencer-reels-section">
+  <div class="container">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+      <div>
+        <span class="section-kicker">As Seen On</span>
+        <h2 class="section-title mb-1">Influencer Reviews</h2>
+        <p class="section-subtitle">Real people. Real kitchens. Real flavour.</p>
+      </div>
+      {# Slide navigation arrows #}
+      <div class="flex items-center gap-2 self-end sm:self-auto">
+        <button type="button" id="reel-slide-prev" class="reel-nav-btn" aria-label="Slide Left">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button type="button" id="reel-slide-next" class="reel-nav-btn" aria-label="Slide Right">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="reel-slider-track" id="reel-slider">
+      {% for reel in influencer_reels %}
+      <div class="reel-card" id="reel-{{ forloop.counter }}">
+        {% if reel.video_file %}
+          {# 1. Direct Uploaded MP4 Video #}
+          <div class="reel-card__header">
+            <div class="reel-card__avatar">{{ reel.influencer_name|first|upper }}</div>
+            <div class="flex-1 min-w-0">
+              <div class="reel-card__name truncate">{{ reel.influencer_name }}</div>
+              {% if reel.handle %}<div class="reel-card__handle">{{ reel.handle }}</div>{% endif %}
+            </div>
+            <span class="reel-card__badge reel-card__badge--video">Video</span>
+          </div>
+          <div class="reel-card__video-wrap">
+            <video src="{{ reel.video_file.url }}"
+                   {% if reel.thumbnail %}poster="{{ reel.thumbnail.url }}"{% endif %}
+ class="reel-card__video" playsinline
+ controls
+ preload="metadata" loop></video>
+          </div>
+          {% if reel.caption %}
+          <p class="reel-card__caption">"{{ reel.caption }}"</p>
+          {% endif %}
+
+        {% elif reel.platform == "instagram" and reel.embed_url %}
+          {# 2. Instagram Embed — Exactly 1 Clean Player #}
+          <div class="reel-card__header">
+            <div class="reel-card__avatar">{{ reel.influencer_name|first|upper }}</div>
+            <div class="flex-1 min-w-0">
+              <div class="reel-card__name truncate">{{ reel.influencer_name }}</div>
+              {% if reel.handle %}<div class="reel-card__handle">{{ reel.handle }}</div>{% endif %}
+            </div>
+            <span class="reel-card__badge reel-card__badge--ig">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg> Instagram
+            </span>
+          </div>
+          <div class="reel-card__ig-wrap">
+            <iframe src="{{ reel.embed_url }}" class="reel-card__ig-iframe" frameborder="0" scrolling="no" allowtransparency="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen
+ loading="lazy" title="{{ reel.influencer_name }} Instagram reel"></iframe>
+          </div>
+          {% if reel.caption %}
+          <p class="reel-card__caption">"{{ reel.caption }}"</p>
+          {% endif %}
+          <div class="reel-card__footer">
+            <a href="{{ reel.instagram_permalink }}" target="_blank" rel="noopener" class="reel-card__ig-btn">
+              <span>Watch on Instagram</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+          </div>
+
+        {% elif reel.platform == "youtube" and reel.embed_url %}
+          {# 3. YouTube Shorts Player #}
+          <div class="reel-card__header">
+            <div class="reel-card__avatar">{{ reel.influencer_name|first|upper }}</div>
+            <div class="flex-1 min-w-0">
+              <div class="reel-card__name truncate">{{ reel.influencer_name }}</div>
+              {% if reel.handle %}<div class="reel-card__handle">{{ reel.handle }}</div>{% endif %}
+            </div>
+            <span class="reel-card__badge reel-card__badge--yt">YouTube</span>
+          </div>
+          <div class="reel-card__yt-wrap">
+            <iframe src="{{ reel.embed_url }}{% if '?' in reel.embed_url %}&{% else %}?{% endif %}rel=0&playsinline=1&modestbranding=1" class="reel-card__yt-iframe" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen
+ loading="lazy" title="{{ reel.influencer_name }} reel"></iframe>
+          </div>
+          {% if reel.caption %}
+          <p class="reel-card__caption">"{{ reel.caption }}"</p>
+          {% endif %}
+
+        {% elif reel.embed_url %}
+          {# 4. Generic Video Embed #}
+          <div class="reel-card__yt-wrap">
+            <iframe src="{{ reel.embed_url }}" class="reel-card__yt-iframe" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <div class="reel-card__header">
+            <div class="reel-card__avatar">{{ reel.influencer_name|first|upper }}</div>
+            <div class="flex-1 min-w-0">
+              <div class="reel-card__name truncate">{{ reel.influencer_name }}</div>
+              {% if reel.handle %}<div class="reel-card__handle">{{ reel.handle }}</div>{% endif %}
+            </div>
+          </div>
+          {% if reel.caption %}
+          <p class="reel-card__caption">"{{ reel.caption }}"</p>
+          {% endif %}
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    (function() {
+ const slider = document.getElementById('reel-slider');
+ const prev = document.getElementById('reel-slide-prev');
+ const next = document.getElementById('reel-slide-next');
+ if (slider && prev && next) {
+ prev.addEventListener('click', function() {
+ slider.scrollBy({ left: -360, behavior: 'smooth' });
+        });
+ next.addEventListener('click', function() {
+ slider.scrollBy({ left: 360, behavior: 'smooth' });
+        });
+      }
+    })();
+  </script>
+</section>
+{% endif %}
+
+
+{# ── Brand Story (Our Story) ── #}
+<section class="section bg-cream-warm">
+  <div class="container">
+    <div class="brand-story-grid">
+      <div class="brand-story__text">
+        <span class="section-kicker">Our Heritage</span>
+        <h2 class="brand-story__title">Spices that taste like they came from someone's kitchen — because they did.</h2>
+        <p class="brand-story__body"> MAGIC MASALA started with one question: why does the garam masala from the local chakki taste so different from the sealed packet? The answer is freshness.
+        </p>
+        <p class="brand-story__body"> We stone-grind our masalas in small batches, pack them the same week, and ship directly to your kitchen. No middlemen. No stale stock. Just spices that still smell like the ingredients they came from.
+        </p>
+        <a href="/about/" class="btn btn-secondary mt-6">Read Our Full Story →</a>
+      </div>
+      <div class="brand-story__visual">
+        <img src="{% static 'images/brand-story.jpg' %}" alt="Stone-ground spices at MAGIC MASALA" loading="lazy" onerror="this.style.display='none'">
+        <div class="brand-story__stat-cards">
+          <div class="brand-story__stat">
+            <div class="brand-story__stat-num">100%</div>
+            <div class="brand-story__stat-label">Natural Ingredients</div>
+          </div>
+          <div class="brand-story__stat">
+            <div class="brand-story__stat-num">Same Week</div>
+            <div class="brand-story__stat-label">Ground & Packed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{# ── Customer Reviews (What Customers Say) ── #}
+{% if testimonials %}
+<section class="section bg-white customer-reviews-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-kicker">Customer Reviews</span>
+      <h2 class="section-title">What Customers Say</h2>
+      <p class="section-subtitle">Real kitchens, verified orders, authentic 5-star love.</p>
+    </div>
+    <div class="testimonials-slider-wrap">
+      <div class="testimonials-grid" id="testimonials-track">
+        {% for t in testimonials %}
+        <div class="testimonial-card">
+          <div class="testimonial-card__header">
+            <div class="testimonial-card__stars">
+              {% for i in "12345" %}{% if forloop.counter <= t.rating %}<span class="star-filled">★</span>{% else %}<span class="star-empty">★</span>{% endif %}{% endfor %}
+            </div>
+            <span class="testimonial-verified-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+              <span>Verified Order</span>
+            </span>
+          </div>
+          <p class="testimonial-card__text">“{{ t.text }}”</p>
+          <div class="testimonial-card__author">
+            {% if t.photo %}
+              <img src="{{ t.photo.url }}" alt="{{ t.customer_name }}" class="testimonial-card__avatar" loading="lazy">
+            {% else %}
+              <div class="testimonial-card__avatar testimonial-card__avatar--initials">{{ t.customer_name|first|upper }}</div>
+            {% endif %}
+            <div class="testimonial-author-meta">
+              <span class="testimonial-card__name">{{ t.customer_name }}</span>
+              <span class="testimonial-card__sub">Verified Home Cook</span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="testimonials-mobile-hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <span>Swipe to read more reviews</span>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+{% block extra_scripts %}
+  <script src="{% static 'js/category_framer_swipe.js' %}"></script>
+  <script src="{% static 'js/product_assembly.js' %}"></script>
+{% endblock %}

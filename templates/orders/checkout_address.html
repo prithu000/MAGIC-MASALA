@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta_title %}Shipping Address — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-10">
+  <div class="flex items-center gap-4 mb-8">
+    <div class="flex items-center gap-2 text-masala-red font-semibold text-sm"><span class="w-7 h-7 bg-masala-red text-white rounded-full flex items-center justify-center font-bold text-xs">1</span>Address</div>
+    <div class="flex-1 h-px bg-stone-200"></div>
+    <div class="flex items-center gap-2 text-stone-400 text-sm"><span class="w-7 h-7 bg-stone-200 rounded-full flex items-center justify-center font-bold text-xs">2</span>Payment</div>
+    <div class="flex-1 h-px bg-stone-200"></div>
+    <div class="flex items-center gap-2 text-stone-400 text-sm"><span class="w-7 h-7 bg-stone-200 rounded-full flex items-center justify-center font-bold text-xs">3</span>Confirm</div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-8">
+    <div class="md:col-span-2">
+      <h1 class="font-serif text-2xl font-bold mb-6">Shipping Address</h1>
+
+      {% if addresses %}
+      <div class="space-y-3 mb-8">
+        <h2 class="font-semibold text-sm uppercase tracking-wide text-stone-mid">Saved Addresses</h2>
+        <form method="post">
+          {% csrf_token %}
+          {% for address in addresses %}
+          <label class="flex gap-3 bg-white rounded-xl p-4 border-2 cursor-pointer
+            {% if address.is_default %}border-masala-red{% else %}border-stone-100 hover:border-stone-300{% endif %} transition-colors">
+            <input type="radio" name="address_id" value="{{ address.pk }}" class="mt-1 text-masala-red"
+                   {% if address.is_default %}checked{% endif %}>
+            <div class="flex-1">
+              <p class="font-semibold text-sm">{{ address.full_name }} <span class="text-xs text-stone-mid font-normal ml-1">({{ address.get_address_type_display }})</span></p>
+              <p class="text-sm text-stone-mid">{{ address.address_line1 }}{% if address.address_line2 %}, {{ address.address_line2 }}{% endif %}</p>
+              <p class="text-sm text-stone-mid">{{ address.city }}, {{ address.state }} — {{ address.pincode }}</p>
+              <p class="text-sm text-stone-mid">{{ address.phone }}</p>
+            </div>
+          </label>
+          {% endfor %}
+          <button type="submit" class="btn btn-primary btn-full mt-4" id="use-saved-address">Deliver to Selected Address</button>
+        </form>
+        <p class="text-center text-sm text-stone-mid">or</p>
+      </div>
+      {% endif %}
+
+      <div class="bg-white rounded-xl shadow-sm p-6">
+        <h2 class="font-semibold mb-5">{% if addresses %}Enter a New Address{% else %}Delivery Address{% endif %}</h2>
+        <form method="post">
+          {% csrf_token %}
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label" for="full_name">Full Name <span class="text-masala-red">*</span></label>
+              <input type="text" id="full_name" name="full_name" class="form-input w-full" required minlength="3" maxlength="80" placeholder="e.g. Rahul Sharma" value="{{ form_data.full_name|default:'' }}">
+              <p id="name-error" class="text-xs text-rose-600 mt-1" style="display:none;"></p>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="phone">Mobile Number <span class="text-masala-red">*</span></label>
+              <div style="position: relative; display: flex; align-items: center;">
+                <span style="position: absolute; left: 12px; font-weight: 600; color: #78716C; font-size: 0.875rem; pointer-events: none;">+91</span>
+                <input type="tel" id="phone" name="phone" class="form-input w-full" required maxlength="10" inputmode="numeric" placeholder="10-digit mobile number" style="padding-left: 46px;" value="{{ form_data.phone|default:'' }}">
+              </div>
+              <p id="phone-error" class="text-xs text-rose-600 mt-1" style="display:none;"></p>
+            </div>
+          </div>
+
+          <div class="form-group mt-4">
+            <label class="form-label" for="address_line1">Flat / House No., Building, Street <span class="text-masala-red">*</span></label>
+            <input type="text" id="address_line1" name="address_line1" class="form-input w-full" required minlength="6" placeholder="e.g. House No. 12, Main Bazaar, Near Old Post Office" value="{{ form_data.address_line1|default:'' }}">
+            <p id="addr1-error" class="text-xs text-rose-600 mt-1" style="display:none;"></p>
+          </div>
+
+          <div class="form-group mt-4">
+            <label class="form-label" for="address_line2">Area / Locality / Landmark (Optional)</label>
+            <input type="text" id="address_line2" name="address_line2" class="form-input w-full" placeholder="e.g. Near Shiv Temple, Mohalla Qazi" value="{{ form_data.address_line2|default:'' }}">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+            <div class="form-group">
+              <div class="flex items-center justify-between mb-1">
+                <label class="form-label" for="pincode" style="margin-bottom:0;">PIN Code <span class="text-masala-red">*</span></label>
+              </div>
+              <div style="position: relative;">
+                <input type="text" id="pincode" name="pincode" class="form-input w-full" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="6-digit PIN" style="padding-right: 36px;" value="{{ form_data.pincode|default:'' }}">
+                <div id="pincode-spinner" style="display:none; position:absolute; right:10px; top:50%; margin-top:-9px; width:18px; height:18px; border:2px solid #D97706; border-top-color:transparent; border-radius:50%; animation:spin 0.7s linear infinite;"></div>
+                <div id="pincode-check" style="display:none; position:absolute; right:10px; top:50%; margin-top:-9px; color:#15803D;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+              </div>
+              <p id="pincode-status" class="text-xs font-semibold mt-1" style="display:none;"></p>
+              <p id="pincode-helper" class="text-xs text-stone-mid mt-1">Enter 6 digits to auto-fill</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="city">City / Town <span class="text-masala-red">*</span></label>
+              <input type="text" id="city" name="city" class="form-input w-full" required placeholder="e.g. Sahaswan" value="{{ form_data.city|default:'' }}">
+              <p class="text-xs text-stone-mid mt-1">Tehsil or Town</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="district">District <span class="text-masala-red">*</span></label>
+              <input type="text" id="district" name="district" class="form-input w-full" required placeholder="e.g. Budaun" value="{{ form_data.district|default:'' }}">
+              <p class="text-xs text-stone-mid mt-1">District name</p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="state">State <span class="text-masala-red">*</span></label>
+              <input type="text" id="state" name="state" class="form-input w-full" required placeholder="e.g. Uttar Pradesh" value="{{ form_data.state|default:'' }}">
+              <p class="text-xs text-stone-mid mt-1">State name</p>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full mt-6" id="submit-new-address" style="font-size: 1rem; padding: 0.85rem 1.5rem; font-weight: 700;">Continue to Payment</button>
+        </form>
+      </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+ const form = document.querySelector('form[method="post"]:not([action])') || document.querySelector('form');
+ const nameInput = document.getElementById('full_name');
+ const phoneInput = document.getElementById('phone');
+ const addr1Input = document.getElementById('address_line1');
+ const addr2Input = document.getElementById('address_line2');
+ const pincodeInput = document.getElementById('pincode');
+ const cityInput = document.getElementById('city');
+ const districtInput = document.getElementById('district');
+ const stateInput = document.getElementById('state');
+ const nameError = document.getElementById('name-error');
+ const phoneError = document.getElementById('phone-error');
+ const addr1Error = document.getElementById('addr1-error');
+ const statusEl = document.getElementById('pincode-status');
+ const spinnerEl = document.getElementById('pincode-spinner');
+ const checkEl = document.getElementById('pincode-check');
+ const helperEl = document.getElementById('pincode-helper');
+ let lastCheckedPin = '';
+ let lookupTimeout = null;
+ let pinIsVerified = false;
+
+  // --- Anti-Spam Validation Rules ---
+ function validateName(val) {
+ val = (val || '').trim();
+ if (val.length < 3) return 'Full name must be at least 3 characters.';
+ if (!/^[A-Za-z\s.'-]+$/.test(val)) return 'Name can only contain English letters and spaces.';
+ const words = val.split(/\s+/);
+ for (const w of words) {
+ if (w.length >= 3 && !/[aeiouAEIOU]/.test(w)) {
+ return 'Please enter a genuine full name (e.g. Rahul Sharma).';
+      }
+ if (/(.)\1\1/.test(w)) {
+ return 'Please enter a real name without repeated letters.';
+      }
+    }
+ return '';
+  }
+ function validatePhone(val) {
+ val = (val || '').replace(/\D/g, '');
+ if (val.length !== 10) return 'Please enter a valid 10-digit Indian mobile number.';
+ if (!/^[6-9]\d{9}$/.test(val)) return 'Mobile number must start with 6, 7, 8, or 9.';
+ if (/^(.)\1{9}$/.test(val) || val === '1234567890' || val === '9876543210') {
+ return 'Please enter an active, genuine mobile number.';
+    }
+ return '';
+  }
+ function validateAddress(val) {
+ val = (val || '').trim();
+ if (val.length < 6) return 'Please enter complete house/flat no., building and street address.';
+ const words = val.split(/[\s,.-]+/).filter(w => w.length >= 3);
+ if (words.length > 0 && words.every(w => !/[aeiouAEIOU0-9]/.test(w))) {
+ return 'Please enter a genuine delivery address (not random keyboard letters).';
+    }
+ return '';
+  }
+
+  // --- Real-time input sanitization ---
+ if (phoneInput) {
+ phoneInput.addEventListener('input', function() {
+ this.value = this.value.replace(/\D/g, '').slice(0, 10);
+ const err = validatePhone(this.value);
+ if (phoneError) {
+ if (this.value.length === 10 && err) {
+ phoneError.textContent = err;
+ phoneError.style.display = 'block';
+ this.style.borderColor = '#E11D48';
+        } else if (this.value.length === 10 && !err) {
+ phoneError.style.display = 'none';
+ this.style.borderColor = '#10B981';
+        } else {
+ phoneError.style.display = 'none';
+ this.style.borderColor = '';
+        }
+      }
+    });
+  }
+ if (nameInput) {
+ nameInput.addEventListener('blur', function() {
+ const err = validateName(this.value);
+ if (nameError) {
+ if (err && this.value.length > 0) {
+ nameError.textContent = err;
+ nameError.style.display = 'block';
+ this.style.borderColor = '#E11D48';
+        } else {
+ nameError.style.display = 'none';
+ this.style.borderColor = this.value ? '#10B981' : '';
+        }
+      }
+    });
+  }
+ if (addr1Input) {
+ addr1Input.addEventListener('blur', function() {
+ const err = validateAddress(this.value);
+ if (addr1Error) {
+ if (err && this.value.length > 0) {
+ addr1Error.textContent = err;
+ addr1Error.style.display = 'block';
+ this.style.borderColor = '#E11D48';
+        } else {
+ addr1Error.style.display = 'none';
+ this.style.borderColor = this.value ? '#10B981' : '';
+        }
+      }
+    });
+  }
+
+  // --- PIN Code Auto-Lookup & Auto-Fill ---
+ async function lookupPincode(pin) {
+ pin = (pin || '').trim().replace(/\D/g, '');
+ if (pin.length !== 6) {
+ resetStatus();
+ pinIsVerified = false;
+ return;
+    }
+ if (pin === lastCheckedPin && cityInput.value && stateInput.value) {
+ return;
+    }
+ lastCheckedPin = pin;
+ if (spinnerEl) spinnerEl.style.display = 'block';
+ if (checkEl) checkEl.style.display = 'none';
+ if (statusEl) {
+ statusEl.style.display = 'block';
+ statusEl.style.color = '#B45309';
+ statusEl.textContent = 'Verifying PIN...';
+    }
+ try {
+ const res = await fetch('/api/pincode/' + encodeURIComponent(pin) + '/');
+ const data = await res.json();
+ if (spinnerEl) spinnerEl.style.display = 'none';
+ if (data && data.valid) {
+ pinIsVerified = true;
+ if (checkEl) checkEl.style.display = 'block';
+
+        // Auto-fill City / Town (e.g. Sahaswan)
+ if (cityInput) {
+ cityInput.value = data.city || '';
+ cityInput.style.backgroundColor = '#ECFDF5';
+ cityInput.style.borderColor = '#10B981';
+ setTimeout(() => {
+ cityInput.style.backgroundColor = '';
+ cityInput.style.borderColor = '';
+          }, 1500);
+        }
+
+        // Auto-fill District (e.g. Budaun)
+ if (districtInput) {
+ districtInput.value = data.district || data.city || '';
+ districtInput.style.backgroundColor = '#ECFDF5';
+ districtInput.style.borderColor = '#10B981';
+ setTimeout(() => {
+ districtInput.style.backgroundColor = '';
+ districtInput.style.borderColor = '';
+          }, 1500);
+        }
+
+        // Auto-fill State (e.g. Uttar Pradesh)
+ if (stateInput) {
+ stateInput.value = data.state || '';
+ stateInput.style.backgroundColor = '#ECFDF5';
+ stateInput.style.borderColor = '#10B981';
+ setTimeout(() => {
+ stateInput.style.backgroundColor = '';
+ stateInput.style.borderColor = '';
+          }, 1500);
+        }
+ if (statusEl) {
+ statusEl.style.display = 'block';
+ statusEl.style.color = '#15803D';
+ statusEl.innerHTML = ' ' + (data.city ? data.city + ', ' : '') + (data.district ? 'Dist. ' + data.district + ', ' : '') + data.state;
+        }
+ if (helperEl) { helperEl.textContent = ''; }
+      } else {
+ pinIsVerified = false;
+ showPinError(data.error || 'Invalid Indian PIN code');
+      }
+    } catch (err) {
+ if (spinnerEl) spinnerEl.style.display = 'none';
+ pinIsVerified = false;
+ showPinError('Could not verify PIN code. Check connection.');
+    }
+  }
+ function showPinError(msg) {
+ if (checkEl) checkEl.style.display = 'none';
+ if (statusEl) {
+ statusEl.style.display = 'block';
+ statusEl.style.color = '#B91C1C';
+ statusEl.textContent = '️ ' + msg;
+    }
+ if (helperEl) {
+ helperEl.textContent = 'Please enter a genuine Indian PIN code';
+ helperEl.style.color = '#B91C1C';
+    }
+  }
+ function resetStatus() {
+ if (spinnerEl) spinnerEl.style.display = 'none';
+ if (checkEl) checkEl.style.display = 'none';
+ if (statusEl) {
+ statusEl.style.display = 'none';
+ statusEl.textContent = '';
+    }
+ if (helperEl) {
+ helperEl.textContent = 'Enter 6 digits to auto-fill';
+ helperEl.style.color = '';
+    }
+  }
+ if (pincodeInput) {
+ pincodeInput.addEventListener('input', function() {
+ const pin = this.value.replace(/\D/g, '').slice(0, 6);
+ this.value = pin;
+ clearTimeout(lookupTimeout);
+ if (pin.length === 6) {
+ lookupTimeout = setTimeout(() => lookupPincode(pin), 120);
+      } else {
+ lastCheckedPin = '';
+ pinIsVerified = false;
+ resetStatus();
+      }
+    });
+ pincodeInput.addEventListener('blur', function() {
+ const pin = this.value.replace(/\D/g, '');
+ if (pin.length === 6) {
+ lookupPincode(pin);
+      }
+    });
+  }
+
+  // Auto-detect PIN code if pasted into address lines
+ function checkAddressForPin(inputEl) {
+ if (!inputEl) return;
+ const text = inputEl.value;
+ const match = text.match(/\b([1-9][0-9]{5})\b/);
+ if (match && pincodeInput && (!pincodeInput.value || pincodeInput.value.length !== 6)) {
+ pincodeInput.value = match[1];
+ lookupPincode(match[1]);
+    }
+  }
+ if (addr1Input) addr1Input.addEventListener('change', () => checkAddressForPin(addr1Input));
+ if (addr2Input) addr2Input.addEventListener('change', () => checkAddressForPin(addr2Input));
+ if (pincodeInput && pincodeInput.value.trim().length === 6) {
+ lookupPincode(pincodeInput.value);
+  }
+
+  // --- Form Submission Guard (Blocks Spam / Fake Submissions) ---
+ if (form) {
+ form.addEventListener('submit', function(e) {
+      // Check if user selected an existing address radio
+ const savedRadio = document.querySelector('input[name="address_id"]:checked');
+ if (savedRadio && e.submitter && e.submitter.id === 'use-saved-address') {
+ return; // Valid saved address
+      }
+ let hasError = false;
+
+      // 1. Name Check
+ const nErr = validateName(nameInput ? nameInput.value : '');
+ if (nErr) {
+ hasError = true;
+ if (nameError) {
+ nameError.textContent = nErr;
+ nameError.style.display = 'block';
+        }
+ nameInput.style.borderColor = '#E11D48';
+ nameInput.focus();
+      } else if (nameError) {
+ nameError.style.display = 'none';
+      }
+
+      // 2. Phone Check
+ const pErr = validatePhone(phoneInput ? phoneInput.value : '');
+ if (pErr) {
+ hasError = true;
+ if (phoneError) {
+ phoneError.textContent = pErr;
+ phoneError.style.display = 'block';
+        }
+ phoneInput.style.borderColor = '#E11D48';
+ if (!nErr) phoneInput.focus();
+      } else if (phoneError) {
+ phoneError.style.display = 'none';
+      }
+
+      // 3. Address Check
+ const aErr = validateAddress(addr1Input ? addr1Input.value : '');
+ if (aErr) {
+ hasError = true;
+ if (addr1Error) {
+ addr1Error.textContent = aErr;
+ addr1Error.style.display = 'block';
+        }
+ addr1Input.style.borderColor = '#E11D48';
+ if (!nErr && !pErr) addr1Input.focus();
+      } else if (addr1Error) {
+ addr1Error.style.display = 'none';
+      }
+
+      // 4. PIN Check
+ const pinVal = pincodeInput ? pincodeInput.value.replace(/\D/g, '') : '';
+ if (pinVal.length !== 6) {
+ hasError = true;
+ showPinError('Enter a valid 6-digit Indian PIN code');
+ pincodeInput.style.borderColor = '#E11D48';
+ if (!nErr && !pErr && !aErr) pincodeInput.focus();
+      }
+
+      // 5. City and District Check
+ if (!cityInput || !cityInput.value.trim()) {
+ hasError = true;
+ cityInput.style.borderColor = '#E11D48';
+      }
+ if (!districtInput || !districtInput.value.trim()) {
+ hasError = true;
+ districtInput.style.borderColor = '#E11D48';
+      }
+ if (!stateInput || !stateInput.value.trim()) {
+ hasError = true;
+ stateInput.style.borderColor = '#E11D48';
+      }
+ if (hasError) {
+ e.preventDefault();
+ e.stopPropagation();
+ return false;
+      }
+    });
+  }
+});
+</script>
+
+    {# Order summary sidebar #}
+    <div>
+      <div class="bg-white rounded-xl shadow-sm p-5 sticky" style="top:80px;">
+        <h2 class="font-semibold mb-4">Order Summary</h2>
+        {% for item in items %}
+        <div class="flex justify-between text-sm mb-2">
+          <span class="text-stone-mid">{{ item }} × {{ item.quantity }}</span>
+          <span>₹{{ item.line_total }}</span>
+        </div>
+        {% endfor %}
+        <div class="border-t border-stone-100 pt-3 mt-3 space-y-2 text-sm">
+          <div class="flex justify-between text-stone-mid"><span>Subtotal</span><span>₹{{ subtotal }}</span></div>
+          {% if discount > 0 %}
+          <div class="flex justify-between text-green-700 font-semibold"><span>Discount</span><span>–₹{{ discount }}</span></div>
+          {% endif %}
+          <div class="flex justify-between text-stone-mid"><span>GST (5%)</span><span>₹{{ tax_amount }}</span></div>
+          <div class="flex justify-between text-stone-mid"><span>Shipping</span><span>{% if free_shipping %}<span class="text-green-700 font-semibold">FREE</span>{% else %}₹{{ shipping }}{% endif %}</span></div>
+          <div class="border-t border-stone-100 pt-2 font-bold flex justify-between text-base">
+            <span>Total</span>
+            <span class="text-masala-red">₹{{ total }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

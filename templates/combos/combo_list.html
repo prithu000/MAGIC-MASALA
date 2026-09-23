@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}Curated Spice Combos & Starter Boxes — {{ site_settings.brand_name }}{% endblock %}
+{% block meta_description %}Explore our handcrafted spice combos and bundles. Save big on authentic, stone-ground fresh Indian masalas.{% endblock %}
+
+{% block content %}
+{# ── Hero Slider (Admin Managed for Combos Page) ── #}
+{% include "partials/_hero_slider.html" %}
+
+<div class="container section-sm">
+
+  {# Breadcrumb #}
+  <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+    <a href="/">Home</a> / <span class="breadcrumb-current">Combos & Bundles</span>
+  </nav>
+
+  {# Section Header #}
+  <div class="section-header" style="margin-top: 1rem; margin-bottom: 2.5rem; text-align: left; max-width: 100%;">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <span class="section-kicker">Curated Bundles</span>
+        <h1 class="section-title" style="font-family: var(--font-serif); font-size: clamp(2.25rem, 4.5vw, 3.25rem); font-weight: 800; color: var(--color-dark-brown); margin-bottom: 0.5rem; text-align: left;"> Signature Spice Combos
+        </h1>
+        <p class="section-subtitle" style="text-align: left; margin: 0;"> Handcrafted combinations and essential kitchen starter packs — stone-ground fresh the same week.
+        </p>
+      </div>
+      <span style="font-size: 0.9rem; font-weight: 600; color: var(--color-brown-muted);">
+        {{ combos.count }} combo pack{{ combos.count|pluralize }} available
+      </span>
+    </div>
+  </div>
+
+  {# Fixed Curated Combos Grid #}
+  {% if combos %}
+  <div class="combo-cards-grid">
+    {% for combo in combos %}
+    <div class="combo-card group" id="combo-{{ combo.slug }}">
+      
+      {# Image Wrap #}
+      <div class="combo-card__img-wrap">
+        {% if combo.image %}
+          <img src="{{ combo.image.url }}" alt="{{ combo.name }}" loading="lazy" class="combo-card__img">
+        {% else %}
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--color-cream-dark);color:var(--color-brown-muted);">
+            <svg style="width:3rem;height:3rem;opacity:0.4;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          </div>
+        {% endif %}
+
+        {% if combo.savings > 0 %}
+        <div class="combo-save-badge">Save ₹{{ combo.savings|floatformat:0 }}</div>
+        {% endif %}
+      </div>
+
+      {# Card Body #}
+      <div class="combo-card__body">
+        {# Free Product Highlight Badge #}
+        <div class="combo-free-badge"> All-In-One Masala FREE
+        </div>
+
+        <h3 class="combo-card__title">
+          <a href="{{ combo.get_absolute_url }}">{{ combo.name }}</a>
+        </h3>
+
+        {% if combo.description %}
+        <p class="combo-card__desc">{{ combo.description|truncatechars:100 }}</p>
+        {% endif %}
+
+        {# Included items preview #}
+        {% if combo.items.all %}
+        <div style="background: var(--color-cream-warm); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; margin-bottom: 1rem; border: 1px solid var(--color-cream-dark);">
+          <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 0.35rem;"> Includes {{ combo.items.count }} Masalas:
+          </div>
+          <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+            {% for item in combo.items.all|slice:":3" %}
+            <li style="font-size: 0.78rem; color: var(--color-dark-brown); display: flex; align-items: center; gap: 0.4rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <span style="width: 4px; height: 4px; border-radius: 9999px; background: var(--color-saffron); flex-shrink: 0;"></span>
+              <span>{{ item.quantity }}× {{ item.product.name }}</span>
+            </li>
+            {% endfor %}
+            {% if combo.items.count > 3 %}
+            <li style="font-size: 0.72rem; color: var(--color-brown-muted); font-style: italic;">
+              + {{ combo.items.count|add:"-3" }} more items in pack
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {# Card Footer / Price & Add to Cart #}
+        <div class="combo-card__footer">
+          <div class="combo-card__price">
+            <span class="combo-price">₹{{ combo.combo_price|floatformat:0 }}</span>
+            {% if combo.total_mrp > combo.combo_price %}
+            <span class="combo-mrp">₹{{ combo.total_mrp|floatformat:0 }}</span>
+            {% endif %}
+          </div>
+
+          <form method="post" action="/cart/add/">
+            {% csrf_token %}
+            <input type="hidden" name="combo_id" value="{{ combo.id }}">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" class="btn btn-primary btn-sm"> Add to Cart
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align: center; padding: 4rem 1rem; background: #FFFFFF; border-radius: var(--radius-lg); border: 1px solid var(--color-cream-dark);">
+    <p style="color: var(--color-brown-muted); font-size: 1.1rem; margin-bottom: 1rem;">No fixed combos available currently.</p>
+    <a href="/shop/" class="btn btn-primary">Browse All Masalas</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

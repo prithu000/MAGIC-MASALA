@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}Frequently Asked Questions (FAQs) — {{ site_settings.brand_name }}{% endblock %}
+{% block meta_description %}Find answers to common questions about {{ site_settings.brand_name }} stone-ground spices, shelf life, shipping, custom boxes, and order tracking.{% endblock %}
+
+{% block extra_head %}
+{% if faq_json_ld %}
+<script type="application/ld+json">{{ faq_json_ld|safe }}</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{# ── Hero Banner ── #}
+<div class="page-hero">
+  <div class="container">
+    <span class="page-hero__kicker">Help & Support</span>
+    <h1 class="page-hero__title">Frequently Asked Questions</h1>
+    <p class="page-hero__subtitle"> Everything you need to know about our stone-ground spices, grinding process, storage, and order delivery.
+    </p>
+  </div>
+</div>
+
+<div class="container" x-data="{ activeAccordion: null, search: '' }" style="max-width: 900px; padding-top: 1.5rem; padding-bottom: 4rem;">
+
+  {# Breadcrumb #}
+  <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+    <a href="/">Home</a> / <span class="breadcrumb-current">FAQs</span>
+  </nav>
+
+  {# Search Box #}
+  <div class="faq-search-box">
+    <svg style="position: absolute; left: 1.15rem; top: 50%; transform: translateY(-50%); width: 1.15rem; height: 1.15rem; color: #8D7B73;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    <input type="text" x-model="search" placeholder="Search questions (e.g. shelf life, shipping, preservatives)..." class="faq-search-input" aria-label="Search FAQs">
+  </div>
+
+  {# FAQ Accordions #}
+  <div class="faq-list">
+    {% for item in items %}
+    <div class="faq-accordion-item" x-show="!search || '{{ item.question|escapejs }}'.toLowerCase().includes(search.toLowerCase()) || '{{ item.answer|striptags|escapejs }}'.toLowerCase().includes(search.toLowerCase())">
+      
+      <button @click="activeAccordion = (activeAccordion === {{ item.id }}) ? null : {{ item.id }}" class="faq-accordion-btn"
+              :aria-expanded="activeAccordion === {{ item.id }}">
+        <span>{{ item.question }}</span>
+        <span class="faq-accordion-icon" :class="activeAccordion === {{ item.id }} ? 'faq-accordion-icon--open' : ''">
+          <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+        </span>
+      </button>
+
+      <div x-show="activeAccordion === {{ item.id }}" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="faq-accordion-body">
+        {{ item.answer|safe }}
+      </div>
+
+    </div>
+    {% empty %}
+    {# Fallback FAQs #}
+    <div class="faq-accordion-item">
+      <button @click="activeAccordion = (activeAccordion === 1) ? null : 1" class="faq-accordion-btn">
+        <span>How long do {{ site_settings.brand_name }} spices stay fresh?</span>
+        <span class="faq-accordion-icon" :class="activeAccordion === 1 ? 'faq-accordion-icon--open' : ''">
+          <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+        </span>
+      </button>
+      <div x-show="activeAccordion === 1" class="faq-accordion-body"> Because our spices are freshly stone-ground in small weekly batches and sealed in multi-layer aroma-barrier pouches, they retain their full essential oil potency for up to 9 months. Store them in a cool, dry place away from direct heat or moisture.
+      </div>
+    </div>
+
+    <div class="faq-accordion-item">
+      <button @click="activeAccordion = (activeAccordion === 2) ? null : 2" class="faq-accordion-btn">
+        <span>What makes traditional stone-grinding superior to modern factory milling?</span>
+        <span class="faq-accordion-icon" :class="activeAccordion === 2 ? 'faq-accordion-icon--open' : ''">
+          <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+        </span>
+      </button>
+      <div x-show="activeAccordion === 2" class="faq-accordion-body"> Factory pulverizers run at thousands of RPMs, generating friction heat that burns the delicate volatile oils in spices (which contain up to 70% of the true aroma and health benefits). Our slow stone mills grind at ambient temperature, keeping all essential oils intact.
+      </div>
+    </div>
+
+    <div class="faq-accordion-item">
+      <button @click="activeAccordion = (activeAccordion === 3) ? null : 3" class="faq-accordion-btn">
+        <span>What are the shipping charges and delivery timelines?</span>
+        <span class="faq-accordion-icon" :class="activeAccordion === 3 ? 'faq-accordion-icon--open' : ''">
+          <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+        </span>
+      </button>
+      <div x-show="activeAccordion === 3" class="faq-accordion-body"> We offer FREE Shipping across India on all orders above ₹499. Orders are dispatched from our mill within 24–48 hours. Metro cities receive delivery in 2–4 business days, while other locations take 4–6 business days.
+      </div>
+    </div>
+
+    <div class="faq-accordion-item">
+      <button @click="activeAccordion = (activeAccordion === 4) ? null : 4" class="faq-accordion-btn">
+        <span>Do your spices contain any MSG, preservatives, or artificial colors?</span>
+        <span class="faq-accordion-icon" :class="activeAccordion === 4 ? 'faq-accordion-icon--open' : ''">
+          <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+        </span>
+      </button>
+      <div x-show="activeAccordion === 4" class="faq-accordion-body"> Absolutely zero! We have a 100% clean-label commitment: no artificial flavors, no preservatives, no starch fillers, and no synthetic color additives. Just pure, unadulterated spices.
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# Still have questions card #}
+  <div style="margin-top: 3rem; background: var(--color-cream-warm); border: 1.5px solid var(--color-cream-dark); border-radius: var(--radius-lg); padding: 2.5rem 2rem; text-align: center;">
+    <h3 style="font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: var(--color-dark-brown); margin-bottom: 0.5rem;">Still Have Questions?</h3>
+    <p style="color: var(--color-brown-muted); font-size: 0.95rem; max-width: 480px; margin: 0 auto 1.5rem; line-height: 1.6;"> Can't find what you're looking for? Our culinary care team is here to help via WhatsApp or Email.
+    </p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="/contact/" class="btn btn-primary">Contact Support</a>
+      {% if site_settings.whatsapp_number %}
+      <a href="https://wa.me/{{ site_settings.whatsapp_number|cut:'+'|cut:' ' }}" target="_blank" rel="noopener" class="footer-whatsapp-btn" style="margin-top:0; padding: 0.8rem 1.4rem; font-size: 0.9rem;">
+        <svg style="width: 1.1rem; height: 1.1rem;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.34 5L2 22l5.16-1.32C8.56 21.52 10.23 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm.07 15.38c-1.37 0-2.72-.36-3.9-1.04l-.28-.17-2.9.76.77-2.82-.18-.29A7.93 7.93 0 014.07 12c0-4.37 3.56-7.93 7.93-7.93S20 7.63 20 12s-3.56 7.38-7.93 7.38zm4.32-5.79c-.24-.12-1.4-.69-1.61-.77-.22-.08-.38-.12-.54.12-.16.24-.62.77-.76.93-.14.16-.28.18-.52.06-.24-.12-1-.37-1.9-1.17-.7-.63-1.17-1.4-1.31-1.64-.14-.24-.01-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.41-.54-.41-.14 0-.3-.02-.46-.02s-.42.06-.64.3c-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.1.16 1.52.1.46-.07 1.4-.57 1.6-1.12.2-.55.2-1.02.14-1.12-.06-.1-.22-.16-.46-.28z"/></svg> Chat on WhatsApp
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

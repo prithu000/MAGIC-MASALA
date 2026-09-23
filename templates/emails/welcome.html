@@ -1,0 +1,78 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Welcome to MU Magic Masala! 🌶️{% endblock %}
+
+{% block content %}
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <!-- Greeting -->
+  <tr>
+    <td>
+      <span style="display: inline-block; background-color: #fef2f2; color: #991b1b; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">
+        Namaste & Welcome!
+      </span>
+      <h2 style="margin: 0 0 16px 0; color: #1c1917; font-size: 24px; font-weight: 700; font-family: Georgia, serif; line-height: 1.3;">
+        Welcome to the Magic Masala Family, {{ user.first_name|default:user.username }}!
+      </h2>
+      <p style="margin: 0 0 16px 0; font-size: 15px; color: #44403c; line-height: 1.6;">
+        We are thrilled to welcome you. At <strong>MU Magic Masala</strong>, every single spice in our mill is crafted with pure intention — sourced directly from Indian farm origins, sun-dried, and slow stone-ground to preserve 100% of the natural aromatic essential oils.
+      </p>
+      <p style="margin: 0 0 24px 0; font-size: 15px; color: #44403c; line-height: 1.6;">
+        No added starch, zero chemical preservatives, and no artificial colorants — just the rich, nostalgic aroma of authentic grandmother-grade spices.
+      </p>
+    </td>
+  </tr>
+
+  <!-- Welcome Coupon Voucher Box -->
+  {% if coupon_code %}
+  <tr>
+    <td style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px dashed #f59e0b; border-radius: 12px; padding: 22px; text-align: center; margin: 20px 0;">
+      <p style="margin: 0 0 6px 0; font-size: 12px; font-weight: 700; color: #b45309; text-transform: uppercase; letter-spacing: 1.5px;">
+        🎁 Special Welcome Gift For You
+      </p>
+      <h3 style="margin: 0 0 8px 0; color: #78350f; font-size: 20px; font-weight: 800;">
+        Get 10% OFF On Your First Order
+      </h3>
+      <p style="margin: 0 0 14px 0; font-size: 13px; color: #92400e;">
+        Use coupon code at checkout:
+      </p>
+      <div style="display: inline-block; background-color: #ffffff; border: 2px solid #d97706; padding: 10px 24px; border-radius: 8px; font-size: 20px; font-weight: 800; letter-spacing: 3px; color: #991b1b; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15);">
+        {{ coupon_code }}
+      </div>
+      <p style="margin: 10px 0 0 0; font-size: 11px; color: #b45309;">
+        Valid on all individual spices, combos, and custom boxes!
+      </p>
+    </td>
+  </tr>
+  {% endif %}
+
+  <!-- CTA Button -->
+  <tr>
+    <td align="center" style="padding: 28px 0 24px 0;">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center" style="background-color: #991b1b; border-radius: 10px; box-shadow: 0 4px 14px rgba(153, 27, 27, 0.35);">
+            <a href="{{ site_url|default:'https://mumagicmasala.com' }}/combos/" target="_blank" style="display: inline-block; padding: 15px 32px; font-size: 15px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px; letter-spacing: 0.5px;">
+              Explore Combos & Start Shopping →
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Account Quick Access -->
+  <tr>
+    <td style="border-top: 1px solid #e7e5e4; padding-top: 20px;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td style="font-size: 13px; color: #78716c; line-height: 1.6;">
+            <strong>Your Account Details:</strong><br>
+            • Email: {{ user.email }}<br>
+            • Manage Orders & Saved Addresses: <a href="{{ site_url|default:'https://mumagicmasala.com' }}/account/" style="color: #991b1b; text-decoration: underline; font-weight: 600;">My Account Dashboard</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}{{ meta_title|default:"Shop Masalas" }} — {{ site_settings.brand_name }}{% endblock %}
+{% block meta_description %}{{ meta_description|default:site_settings.meta_description }}{% endblock %}
+
+{% block content %}
+<div class="container section-sm">
+
+  {# Breadcrumb #}
+  <nav class="text-sm text-stone-mid mb-4 flex items-center gap-1.5 flex-wrap" aria-label="Breadcrumb">
+    <a href="/" class="hover:text-masala-red">Home</a> /
+    {% if category %}<a href="/shop/" class="hover:text-masala-red">Shop</a> / <span>{{ category.name }}</span>
+    {% else %}<span>Shop</span>{% endif %}
+  </nav>
+
+  <div class="shop-layout">
+
+    {# ── Desktop Filter Sidebar ── #}
+    <aside class="shop-sidebar">
+      <div class="filter-sidebar sticky" style="top: 80px;">
+        <h2 class="font-semibold text-sm uppercase tracking-wide mb-4">Filters</h2>
+
+        {# Category filter #}
+        <div class="mb-6">
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-stone-mid mb-3">Category</h3>
+          {% for cat in categories %}
+          <a href="{{ cat.get_absolute_url }}" class="block py-1.5 text-sm {% if current_category == cat.slug %}text-masala-red font-semibold{% else %}text-charcoal hover:text-masala-red{% endif %}">
+            {{ cat.name }}
+          </a>
+          {% endfor %}
+        </div>
+
+        {# Price filter #}
+        <div class="mb-6">
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-stone-mid mb-3">Price Range</h3>
+          <form method="get" id="price-filter">
+            {% if request.GET.sort %}
+            <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+            {% endif %}
+            <div class="flex gap-2 items-center">
+              <input type="number" name="min_price" placeholder="₹ Min" value="{{ request.GET.min_price }}" class="form-input" style="min-height:38px;padding:0.4rem 0.6rem;font-size:0.8rem;">
+              <span class="text-stone-mid">—</span>
+              <input type="number" name="max_price" placeholder="₹ Max" value="{{ request.GET.max_price }}" class="form-input" style="min-height:38px;padding:0.4rem 0.6rem;font-size:0.8rem;">
+            </div>
+            <div class="flex gap-2 mt-3">
+              <button type="submit" class="btn btn-primary btn-sm flex-1">Apply</button>
+              {% if request.GET.min_price or request.GET.max_price %}
+              <a href="{% if category %}{{ category.get_absolute_url }}{% else %}/shop/{% endif %}" class="btn btn-secondary btn-sm" title="Clear price filter">Reset</a>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+    </aside>
+
+    {# ── Product Grid ── #}
+    <div class="shop-main">
+      {# Sort bar #}
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <p class="text-sm text-stone-mid">{{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }}</p>
+        <div class="flex items-center gap-2">
+          <label for="sort" class="text-xs font-semibold text-stone-mid uppercase tracking-wide">Sort:</label>
+          <select id="sort" name="sort" onchange="this.form.submit()" form="sort-form" class="form-select" style="min-height:36px;padding:0.35rem 0.7rem;font-size:0.85rem;width:auto;">
+            <option value="newest"    {% if request.GET.sort == "newest"    %}selected{% endif %}>Newest First</option>
+            <option value="price_asc" {% if request.GET.sort == "price_asc" %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_desc"{% if request.GET.sort == "price_desc"%}selected{% endif %}>Price: High to Low</option>
+            <option value="rating"    {% if request.GET.sort == "rating"    %}selected{% endif %}>Top Rated</option>
+          </select>
+          <form id="sort-form" method="get">
+            {% if request.GET.min_price %}<input type="hidden" name="min_price" value="{{ request.GET.min_price }}">{% endif %}
+            {% if request.GET.max_price %}<input type="hidden" name="max_price" value="{{ request.GET.max_price }}">{% endif %}
+          </form>
+        </div>
+      </div>
+
+      {# Mobile filter trigger button #}
+      <div class="md:hidden mb-4">
+        <button class="btn btn-secondary btn-sm" id="open-filter-sheet" onclick="openFilterSheet()" type="button" style="display:inline-flex;align-items:center;gap:0.4rem;">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+          <span>Filters & Categories</span>
+          {% if request.GET.min_price or request.GET.max_price or current_category %}
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-primary);"></span>
+          {% endif %}
+        </button>
+      </div>
+
+      {% if products %}
+        <div class="product-grid">
+          {% for product in products %}
+            {% include "partials/_product_card.html" with product=product %}
+          {% endfor %}
+        </div>
+
+        {# Pagination #}
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-10 flex justify-center gap-2" aria-label="Pagination">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="btn btn-secondary btn-sm">Previous</a>
+          {% endif %}
+          <span class="btn btn-sm" style="background:var(--color-cream-dark);cursor:default;">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="btn btn-secondary btn-sm">Next</a>
+          {% endif %}
+        </nav>
+        {% endif %}
+
+      {% else %}
+        <div class="text-center py-20">
+          <p class="text-stone-mid text-lg mb-4">No products found matching your filters.</p>
+          <a href="/shop/" class="btn btn-primary">Browse All Products</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# Mobile filter bottom sheet modal #}
+<div id="filter-sheet" class="filter-sheet" style="display:none;">
+  <div class="filter-sheet__backdrop" onclick="closeFilterSheet()"></div>
+  <div class="filter-sheet__panel">
+    <div class="filter-sheet__header">
+      <h2 class="filter-sheet__title">Filters & Categories</h2>
+      <button onclick="closeFilterSheet()" class="filter-sheet__close" aria-label="Close filters">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    {# Category list #}
+    <div class="mb-5">
+      <h3 class="filter-sheet__section-title">Categories</h3>
+      <div class="filter-sheet__cat-list">
+        <a href="/shop/" class="filter-sheet__cat-item {% if not current_category %}filter-sheet__cat-item--active{% endif %}">
+          <span>All Products</span>
+          {% if not current_category %}<span class="filter-check"></span>{% endif %}
+        </a>
+        {% for cat in categories %}
+        <a href="{{ cat.get_absolute_url }}" class="filter-sheet__cat-item {% if current_category == cat.slug %}filter-sheet__cat-item--active{% endif %}">
+          <span>{{ cat.name }}</span>
+          {% if current_category == cat.slug %}<span class="filter-check"></span>{% endif %}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# Price range filter #}
+    <div class="mb-5">
+      <h3 class="filter-sheet__section-title">Price Range</h3>
+      <form method="get" id="mobile-price-filter">
+        {% if request.GET.sort %}
+        <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+        {% endif %}
+        <div class="flex gap-2 items-center">
+          <input type="number" name="min_price" placeholder="₹ Min" value="{{ request.GET.min_price }}" class="form-input flex-1" style="min-height:42px;padding:0.5rem 0.75rem;font-size:0.9rem;">
+          <span class="text-stone-mid font-bold">—</span>
+          <input type="number" name="max_price" placeholder="₹ Max" value="{{ request.GET.max_price }}" class="form-input flex-1" style="min-height:42px;padding:0.5rem 0.75rem;font-size:0.9rem;">
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary btn-sm flex-1">Apply Filter</button>
+          {% if request.GET.min_price or request.GET.max_price %}
+          <a href="{% if category %}{{ category.get_absolute_url }}{% else %}/shop/{% endif %}" class="btn btn-secondary btn-sm">Clear</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
+    <div class="pt-3 border-t border-stone-200">
+      <a href="/shop/" class="btn btn-secondary btn-full btn-sm">Reset All Filters</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function openFilterSheet() {
+ var el = document.getElementById('filter-sheet');
+ if (el) {
+ el.style.display = 'flex';
+ document.body.style.overflow = 'hidden';
+  }
+}
+function closeFilterSheet() {
+ var el = document.getElementById('filter-sheet');
+ if (el) {
+ el.style.display = 'none';
+ document.body.style.overflow = '';
+  }
+}
+</script>
+{% endblock %}

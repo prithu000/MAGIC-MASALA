@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block meta_title %}Access Denied (403) — {{ site_settings.brand_name|default:"MU Magic Masala" }}{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center px-4 py-16">
+  <div class="max-w-md w-full text-center">
+    <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-200">
+      <span class="text-3xl font-serif font-bold text-red-700">403</span>
+    </div>
+    <h1 class="text-2xl sm:text-3xl font-serif font-bold text-stone-900 mb-3">Access Denied</h1>
+    <p class="text-stone-600 text-sm mb-8 leading-relaxed">
+      You do not have permission to access this resource or your security token has expired.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/" class="btn btn-primary px-6 py-3 text-sm font-semibold rounded-xl inline-flex items-center justify-center gap-2">
+        Return Home
+      </a>
+      <a href="/accounts/login/" class="btn btn-secondary px-6 py-3 text-sm font-semibold rounded-xl inline-flex items-center justify-center gap-2">
+        Log In
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

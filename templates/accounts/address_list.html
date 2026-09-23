@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}Saved Delivery Addresses — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  <div class="flex flex-col lg:flex-row gap-8">
+    
+    {% include "accounts/_nav.html" %}
+
+    <main class="flex-1 space-y-6">
+      
+      <div class="bg-white rounded-2xl border border-stone-100 p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-100">
+          <div>
+            <h1 class="font-serif text-2xl font-bold text-stone-900">Saved Addresses</h1>
+            <p class="text-stone-500 text-xs mt-0.5">Manage delivery destinations for rapid single-click checkout</p>
+          </div>
+          <a href="{% url 'accounts:address_create' %}" class="btn btn-primary btn-sm flex items-center gap-1.5 self-start sm:self-auto shadow-sm">
+            <span>+ Add New Address</span>
+          </a>
+        </div>
+
+        {% if addresses %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+          {% for addr in addresses %}
+          <div class="border {% if addr.is_default %}border-masala-red/60 bg-red-50/20{% else %}border-stone-200/80 bg-white{% endif %} rounded-2xl p-5 relative flex flex-col justify-between shadow-xs">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700">
+                  {{ addr.get_address_type_display }}
+                </span>
+                {% if addr.is_default %}
+                <span class="text-[11px] font-bold text-masala-red bg-red-100 px-2.5 py-0.5 rounded-full"> Default Address
+                </span>
+                {% endif %}
+              </div>
+              <h3 class="font-bold text-stone-900 text-sm mt-2">{{ addr.full_name }}</h3>
+              <p class="text-xs text-stone-600 mt-1 leading-relaxed">
+                {{ addr.address_line1 }}<br>
+                {% if addr.address_line2 %}{{ addr.address_line2 }}<br>{% endif %}
+                {% if addr.landmark %}Landmark: {{ addr.landmark }}<br>{% endif %}
+                {{ addr.city }}, {{ addr.state }} — {{ addr.pincode }}
+              </p>
+              <p class="text-xs text-stone-600 mt-2"><strong>Phone:</strong> {{ addr.phone }}</p>
+            </div>
+
+            <div class="mt-5 pt-3 border-t border-stone-100 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-3">
+                <a href="{% url 'accounts:address_edit' addr.pk %}" class="font-semibold text-stone-700 hover:text-masala-red"> Edit
+                </a>
+                {% if not addr.is_default %}
+                <span class="text-stone-300">•</span>
+                <form method="post" action="{% url 'accounts:address_set_default' addr.pk %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit" class="font-semibold text-stone-700 hover:text-masala-red bg-transparent border-0 p-0 cursor-pointer text-xs"> Set as Default
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+
+              <form method="post" action="{% url 'accounts:address_delete' addr.pk %}" onsubmit="return confirm('Are you sure you want to remove this address?')">
+                {% csrf_token %}
+                <button type="submit" class="text-stone-400 hover:text-red-600 transition-colors"> Remove
+                </button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16 space-y-4">
+          <div class="w-16 h-16 bg-cream rounded-full flex items-center justify-center mx-auto text-stone-400 text-2xl">
+            
+          </div>
+          <h2 class="font-serif text-xl font-bold text-stone-800">No addresses saved</h2>
+          <p class="text-stone-500 text-sm max-w-sm mx-auto">Add your home or office address to make ordering spices effortless.</p>
+          <a href="{% url 'accounts:address_create' %}" class="btn btn-primary btn-sm">+ Add Your First Address</a>
+        </div>
+        {% endif %}
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+{% endblock %}

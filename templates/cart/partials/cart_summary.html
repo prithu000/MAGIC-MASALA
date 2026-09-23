@@ -1,0 +1,44 @@
+{% load static %}
+<div id="cart-summary-partial" class="space-y-4">
+  {% if coupon_message %}
+    <div class="p-3 text-sm rounded-lg {% if coupon_success %}bg-green-50 text-green-800 border border-green-200{% else %}bg-red-50 text-red-800 border border-red-200{% endif %}">
+      {{ coupon_message }}
+    </div>
+  {% endif %}
+
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h2 class="font-semibold text-lg mb-5">Order Summary</h2>
+
+    <div class="space-y-3 text-sm mb-5">
+      <div class="flex justify-between"><span class="text-stone-mid">Subtotal</span><span>₹{{ subtotal }}</span></div>
+      {% if discount > 0 %}
+      <div class="flex justify-between text-green-700 font-medium"><span>Discount ({{ coupon.code }})</span><span>–₹{{ discount }}</span></div>
+      {% endif %}
+      {% if free_shipping %}
+      <div class="flex justify-between text-green-700"><span>Shipping</span><span>Free</span></div>
+      {% elif shipping_fee %}
+      <div class="flex justify-between text-stone-mid"><span>Shipping</span><span>₹{{ shipping_fee }}</span></div>
+      {% endif %}
+      <div class="h-px bg-stone-100 my-2"></div>
+      <div class="flex justify-between font-bold text-base">
+        <span>Total</span>
+        <span class="text-masala-red">₹{{ subtotal_after_discount }}</span>
+      </div>
+    </div>
+
+    <a href="/checkout/address/" class="btn btn-primary btn-full {% if not meets_minimum %}btn-disabled{% endif %}"
+       {% if not meets_minimum %}aria-disabled="true" onclick="return false;" style="opacity:0.5;cursor:not-allowed;"{% endif %}
+ id="proceed-to-checkout"> Proceed to Checkout
+    </a>
+
+    {% if not meets_minimum %}
+    <p class="text-xs text-center text-amber-700 mt-2">Minimum order: ₹{{ min_order_value|floatformat:0 }} (Shortfall: ₹{{ shortfall|floatformat:0 }})</p>
+    {% endif %}
+
+    <div class="mt-4 text-center">
+      <span class="inline-block bg-amber-100 text-amber-900 text-xs px-2 py-1 rounded-full font-medium" id="cart-counter-bubble" hx-swap-oob="true">
+        {{ items|length }}
+      </span>
+    </div>
+  </div>
+</div>

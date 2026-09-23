@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}Your Shopping Cart — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 cart-page-container" style="padding-top: 1.75rem; padding-bottom: 4rem;" x-data="{
+ subtotal: '{{ subtotal }}',
+ discount: '{{ discount }}',
+ tax_amount: '{{ tax_amount }}',
+ shipping: '{{ shipping }}',
+ free_shipping: {{ free_shipping|yesno:'true,false' }},
+ total: '{{ total }}',
+ meets_minimum: {{ meets_minimum|yesno:'true,false' }},
+ shortfall: '{{ shortfall|floatformat:0 }}',
+ min_order: '{{ min_order_value|floatformat:0 }}',
+ appliedCoupon: '{% if coupon %}{{ coupon.code }}{% endif %}',
+ couponCode: '',
+ couponError: '{% if coupon_alert and not coupon_alert.success %}{{ coupon_alert.message }}{% elif coupon_error %}{{ coupon_error }}{% endif %}',
+ couponMessage: '{% if coupon_alert and coupon_alert.success %}{{ coupon_alert.message }}{% endif %}',
+ couponLoading: false,
+ itemLoading: {},
+ items: {
+         {% for item in items %}
+         '{{ item.pk }}': {
+ quantity: {{ item.quantity }},
+ unit_price: '{{ item.unit_price }}',
+ line_total: '{{ item.line_total }}'
+         },
+         {% endfor %}
+       },
+ get itemCount() {
+ return Object.keys(this.items).length;
+       },
+ async updateQty(id, qty) {
+ if (qty < 1) return;
+ this.itemLoading[id] = true;
+ try {
+ const res = await fetch(`/cart/update/${id}/`, {
+ method: 'POST',
+ headers: {
+               'Content-Type': 'application/json',
+               'X-CSRFToken': '{{ csrf_token }}',
+               'X-Requested-With': 'XMLHttpRequest'
+             },
+ body: JSON.stringify({ quantity: qty })
+           });
+ const data = await res.json();
+ if (data.success) {
+ if (data.item_deleted) {
+ delete this.items[id];
+             } else {
+ this.items[id].quantity = data.quantity;
+ this.items[id].line_total = data.line_total;
+             }
+ this.subtotal = data.subtotal;
+ this.discount = data.discount;
+ this.tax_amount = data.tax_amount;
+ this.shipping = data.shipping;
+ this.free_shipping = data.free_shipping;
+ this.total = data.total;
+ this.meets_minimum = data.meets_minimum;
+ this.shortfall = data.shortfall;
+           }
+         } catch (e) {
+ console.error(e);
+         } finally {
+ this.itemLoading[id] = false;
+         }
+       },
+ async removeItem(id) {
+ if (!confirm('Remove this item from your cart?')) return;
+ this.itemLoading[id] = true;
+ try {
+ const res = await fetch(`/cart/remove/${id}/`, {
+ method: 'POST',
+ headers: {
+               'Content-Type': 'application/json',
+               'X-CSRFToken': '{{ csrf_token }}',
+               'X-Requested-With': 'XMLHttpRequest'
+             }
+           });
+ const data = await res.json();
+ if (data.success) {
+ delete this.items[id];
+ this.subtotal = data.subtotal;
+ this.discount = data.discount;
+ this.tax_amount = data.tax_amount;
+ this.shipping = data.shipping;
+ this.free_shipping = data.free_shipping;
+ this.total = data.total;
+ this.meets_minimum = data.meets_minimum;
+ this.shortfall = data.shortfall;
+           }
+         } catch (e) {
+ console.error(e);
+         } finally {
+ this.itemLoading[id] = false;
+         }
+       },
+ async applyCoupon() {
+ const code = this.couponCode.trim();
+ if (!code) {
+ this.couponError = 'Please enter a coupon code.';
+ this.couponMessage = '';
+ return;
+         }
+ this.couponLoading = true;
+ this.couponError = '';
+ this.couponMessage = '';
+ try {
+ const res = await fetch('/cart/coupon/apply/', {
+ method: 'POST',
+ headers: {
+               'Content-Type': 'application/json',
+               'X-CSRFToken': '{{ csrf_token }}',
+               'X-Requested-With': 'XMLHttpRequest'
+             },
+ body: JSON.stringify({ coupon_code: code })
+           });
+ const data = await res.json();
+ if (data.success) {
+ this.appliedCoupon = data.coupon_code;
+ this.couponMessage = data.message;
+ this.discount = data.discount;
+ this.subtotal = data.subtotal;
+ this.tax_amount = data.tax_amount;
+ this.shipping = data.shipping;
+ this.free_shipping = data.free_shipping;
+ this.total = data.total;
+ this.couponCode = '';
+           } else {
+ this.couponError = data.message || 'Invalid coupon code.';
+           }
+         } catch (e) {
+ this.couponError = 'Failed to apply coupon. Please try again.';
+         } finally {
+ this.couponLoading = false;
+         }
+       },
+ async removeCoupon() {
+ this.couponLoading = true;
+ this.couponError = '';
+ this.couponMessage = '';
+ try {
+ const res = await fetch('/cart/coupon/remove/', {
+ method: 'POST',
+ headers: {
+               'X-CSRFToken': '{{ csrf_token }}',
+               'X-Requested-With': 'XMLHttpRequest'
+             }
+           });
+ const data = await res.json();
+ if (data.success) {
+ this.appliedCoupon = '';
+ this.discount = '0.00';
+ this.subtotal = data.subtotal;
+ this.tax_amount = data.tax_amount;
+ this.shipping = data.shipping;
+ this.free_shipping = data.free_shipping;
+ this.total = data.total;
+ this.couponMessage = 'Coupon removed.';
+           }
+         } catch (e) {
+ console.error(e);
+         } finally {
+ this.couponLoading = false;
+         }
+       }
+     }">
+
+  <div class="cart-header-row mb-6">
+    <h1 class="cart-title">Your Cart</h1>
+    <span class="cart-subtitle" x-text="`${itemCount} item${itemCount === 1 ? '' : 's'}`"></span>
+  </div>
+
+  <template x-if="itemCount === 0">
+    <div class="cart-empty-state">
+      <div class="cart-empty-icon"></div>
+      <h2>Your cart is currently empty</h2>
+      <p>Explore our stone-ground artisanal masalas and handcrafted combos.</p>
+      <div class="flex gap-4 justify-center mt-6">
+        <a href="/shop/" class="btn btn-primary">Browse All Spices</a>
+        <a href="/combos/build/" class="btn btn-secondary">Build 10-Masala Box</a>
+      </div>
+    </div>
+  </template>
+
+  <div x-show="itemCount > 0" class="cart-layout-grid">
+
+    {# ── Left Column: Items Table & Coupon ── #}
+    <div class="cart-main-col">
+
+      {# Minimum order shortfall alert #}
+      <div x-show="!meets_minimum" class="cart-alert-box cart-alert-box--warning mb-4">
+        <span>️ Minimum order value is <strong>₹<span x-text="min_order"></span></strong>. Add <strong>₹<span x-text="shortfall"></span></strong> more to proceed.</span>
+      </div>
+
+      {# Free shipping alert #}
+      <div x-show="free_shipping" class="cart-alert-box cart-alert-box--success mb-4">
+        <span>You have unlocked <strong>FREE Shipping</strong> across India!</span>
+      </div>
+
+      {# Items Table #}
+      <div class="cart-table-card">
+        <div class="cart-table-responsive">
+          <table class="cart-modern-table">
+            <thead>
+              <tr>
+                <th class="col-product">Product</th>
+                <th class="col-price">Price</th>
+                <th class="col-qty">Quantity</th>
+                <th class="col-total">Total</th>
+                <th class="col-action"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in items %}
+              <tr id="row-{{ item.pk }}" x-show="items['{{ item.pk }}']">
+                <td class="col-product">
+                  <div class="cart-prod-cell">
+                    <div class="cart-prod-thumb" style="width: 64px; height: 64px; min-width: 64px; max-width: 64px; border-radius: 10px; overflow: hidden; flex-shrink: 0; background: #F8F3EA;">
+                      {% if item.product and item.product.main_image %}
+                        <img src="{{ item.product.thumbnail.url }}" alt="{{ item.product.name }}" class="w-full h-full object-cover block">
+                      {% elif item.fixed_combo and item.fixed_combo.image %}
+                        <img src="{{ item.fixed_combo.image.url }}" alt="{{ item.fixed_combo.name }}" class="w-full h-full object-cover block">
+                      {% elif item.custom_combo_selection %}
+                        <img src="{% static 'images/custom-combo-box.jpg' %}" alt="Build Your Own 10-Masala Box" class="w-full h-full object-cover block">
+                      {% else %}
+                        <img src="{% static 'images/custom-combo-box.jpg' %}" alt="Build Your Own Combo Box" class="w-full h-full object-cover block">
+                      {% endif %}
+                    </div>
+                    <div class="cart-prod-meta">
+                      {% if item.custom_combo_selection %}
+                        {# ── Luxury Curated Custom Combo Presentation ── #}
+                        <div class="cart-custom-combo-block" x-data="{ showItems: false }">
+                          <div class="cart-combo-badge-row">
+                            <span class="cart-combo-curated-tag">
+                              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                              </svg> Custom Box
+                            </span>
+                            <span class="cart-combo-count-badge">{{ item.custom_combo_selection.item_count }} Artisanal Spices</span>
+                          </div>
+
+                          <h4 class="cart-combo-main-title">
+                            {{ item.custom_combo_selection.rule.name|default:"Build Your Own 10-Masala Box" }}
+                          </h4>
+
+                          {# Collapsed Preview Line #}
+                          <div class="cart-combo-preview-line" @click="showItems = !showItems">
+                            <span class="cart-combo-preview-text">
+                              <strong>Box includes:</strong>
+                              {% for ci in item.custom_combo_selection.get_items|slice:":3" %}{{ ci.quantity }}× {{ ci.product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if item.custom_combo_selection.get_items|length > 3 %} + {{ item.custom_combo_selection.get_items|length|add:"-3" }} more{% endif %}
+                            </span>
+                            <button type="button" class="cart-combo-toggle-btn" :aria-expanded="showItems.toString()">
+                              <span class="hidden sm:inline" x-text="showItems ? 'Hide spices' : 'View all {{ item.custom_combo_selection.item_count }} spices'">View all {{ item.custom_combo_selection.item_count }} spices</span>
+                              <span class="sm:hidden" x-text="showItems ? 'Hide' : '{{ item.custom_combo_selection.item_count }} spices'">{{ item.custom_combo_selection.item_count }} spices</span>
+                              <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="showItems ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                              </svg>
+                            </button>
+                          </div>
+
+                          {# Expandable Spices Drawer with smooth x-collapse #}
+                          <div x-show="showItems" x-collapse class="cart-combo-expanded-drawer">
+                            <div class="cart-combo-spice-grid">
+                              {% for ci in item.custom_combo_selection.get_items %}
+                                <div class="cart-combo-spice-card">
+                                  <span class="spice-num-bullet">{{ forloop.counter }}</span>
+                                  <div class="spice-details">
+                                    <span class="spice-title">{{ ci.product.name }}</span>
+                                    <span class="spice-qty-chip">{{ ci.quantity }} unit{{ ci.quantity|pluralize }}</span>
+                                  </div>
+                                </div>
+                              {% endfor %}
+                              {% if item.custom_combo_selection.free_product %}
+                                <div class="cart-combo-spice-card cart-combo-spice-card--free">
+                                  <span class="spice-free-badge">FREE</span>
+                                  <div class="spice-details">
+                                    <span class="spice-title">{{ item.custom_combo_selection.free_product.name }}</span>
+                                    <span class="spice-qty-chip">1 bonus</span>
+                                  </div>
+                                </div>
+                              {% endif %}
+                            </div>
+
+                            <div class="cart-combo-actions-row">
+                              <a href="/combos/build/" class="cart-combo-reconfigure-link">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg> Change / Re-select Spices
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+
+                      {% else %}
+                        {# Standard Product / Fixed Combo #}
+                        <h4 class="cart-prod-name">
+                          {% if item.product %}
+                            <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+                          {% elif item.fixed_combo %}
+                            <a href="{{ item.fixed_combo.get_absolute_url }}">{{ item.fixed_combo.name }}</a>
+                          {% else %}
+                            <span>{{ item }}</span>
+                          {% endif %}
+                        </h4>
+                        <div class="cart-prod-sub-meta">
+                          {% if item.variant %}
+                            <span class="cart-prod-variant">{{ item.variant.size_label }}</span>
+                          {% elif item.product.weight %}
+                            <span class="cart-prod-variant">{{ item.product.weight }}</span>
+                          {% endif %}
+                          <span class="cart-mobile-price">₹{{ item.unit_price }}</span>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+
+                <td class="col-price">
+                  <span class="cart-price-tag">₹{{ item.unit_price }}</span>
+                </td>
+
+                <td class="col-qty">
+                  <div class="modern-qty-stepper" style="display: inline-flex; flex-direction: row; flex-wrap: nowrap; align-items: center;">
+                    <button type="button" class="qty-step-btn"
+                            @click="updateQty('{{ item.pk }}', items['{{ item.pk }}'].quantity - 1)"
+                            :disabled="itemLoading['{{ item.pk }}'] || (items['{{ item.pk }}'] && items['{{ item.pk }}'].quantity <= 1)" aria-label="Decrease quantity">−</button>
+                    <input type="number" class="qty-step-input" min="1" max="99"
+                           :value="items['{{ item.pk }}'] ? items['{{ item.pk }}'].quantity : 1"
+                           @change="updateQty('{{ item.pk }}', parseInt($event.target.value) || 1)" aria-label="Item quantity">
+                    <button type="button" class="qty-step-btn"
+                           @click="updateQty('{{ item.pk }}', items['{{ item.pk }}'].quantity + 1)"
+                           :disabled="itemLoading['{{ item.pk }}']" aria-label="Increase quantity">+</button>
+                  </div>
+                </td>
+
+                <td class="col-total">
+                  <div class="cart-total-cell">
+                    <span class="cart-mobile-total-label">Subtotal:</span>
+                    <span class="cart-line-total" x-text="`₹${items['{{ item.pk }}'] ? items['{{ item.pk }}'].line_total : '{{ item.line_total }}'}`">
+                      ₹{{ item.line_total }}
+                    </span>
+                  </div>
+                </td>
+
+                <td class="col-action">
+                  <button type="button" class="cart-remove-btn"
+                          @click="removeItem('{{ item.pk }}')" title="Remove item" aria-label="Remove item">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {# ── Coupon Box ── #}
+      <div class="cart-coupon-card mt-6">
+        <h3 class="cart-coupon-title">Have a Promotional Coupon?</h3>
+
+        {# Applied Coupon Success Display #}
+        <div x-show="appliedCoupon" class="coupon-applied-badge mb-3">
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span class="font-bold text-green-800" x-text="`${appliedCoupon} Applied!`"></span>
+            <span class="text-xs text-green-700 font-semibold" x-text="`— You save ₹${discount}`"></span>
+          </div>
+          <button type="button" @click="removeCoupon()" class="coupon-remove-link" :disabled="couponLoading"> Remove
+          </button>
+        </div>
+
+        {# Coupon Form #}
+        <div x-show="!appliedCoupon" class="coupon-input-group">
+          <input type="text" x-model="couponCode"
+                 @keydown.enter.prevent="applyCoupon()" placeholder="Enter coupon code (e.g. HELLO)" class="coupon-input" autocomplete="off" autocapitalize="characters">
+          <button type="button"
+                  @click="applyCoupon()"
+                  :disabled="couponLoading" class="coupon-apply-btn">
+            <span x-show="!couponLoading">Apply</span>
+            <span x-show="couponLoading" class="coupon-spinner"></span>
+          </button>
+        </div>
+
+        {# Coupon Error Alert #}
+        <div x-show="couponError" class="coupon-feedback coupon-feedback--error mt-2" style="display: none;">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span x-text="couponError"></span>
+        </div>
+
+        {# Coupon Success Message #}
+        <div x-show="couponMessage && !appliedCoupon" class="coupon-feedback coupon-feedback--success mt-2" style="display: none;">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span x-text="couponMessage"></span>
+        </div>
+      </div>
+
+    </div>
+
+    {# ── Right Column: Order Summary with 5% GST ── #}
+    <div class="cart-sidebar-col">
+      <div class="order-summary-card">
+        <h2 class="order-summary-title">Order Summary</h2>
+
+        <div class="order-summary-rows">
+          <div class="summary-row">
+            <span class="row-label">Subtotal</span>
+            <span class="row-val font-semibold" x-text="`₹${subtotal}`">₹{{ subtotal }}</span>
+          </div>
+
+          <div x-show="discount > 0" class="summary-row summary-row--discount">
+            <span class="row-label">Coupon Discount</span>
+            <span class="row-val" x-text="`–₹${discount}`">–₹{{ discount }}</span>
+          </div>
+
+          {# 5% GST on Spices #}
+          <div class="summary-row">
+            <span class="row-label flex items-center gap-1">
+              <span>GST (5%)</span>
+              <span class="summary-info-tag">Tax</span>
+            </span>
+            <span class="row-val font-semibold" x-text="`₹${tax_amount}`">₹{{ tax_amount }}</span>
+          </div>
+
+          <div class="summary-row">
+            <span class="row-label">Shipping Across India</span>
+            <span class="row-val" :class="free_shipping ? 'text-green-700 font-bold' : ''">
+              <span x-show="free_shipping">FREE</span>
+              <span x-show="!free_shipping" x-text="`₹${shipping}`">₹{{ shipping }}</span>
+            </span>
+          </div>
+
+          <div class="summary-divider"></div>
+
+          <div class="summary-row summary-row--total">
+            <span class="total-label">Total Payable</span>
+            <span class="total-val" x-text="`₹${total}`">₹{{ total }}</span>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <a href="/checkout/address/" class="btn btn-primary btn-full checkout-cta-btn"
+             :class="!meets_minimum ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
+             :aria-disabled="!meets_minimum"
+             @click="if(!meets_minimum) $event.preventDefault()" id="proceed-to-checkout"> Proceed to Checkout →
+          </a>
+        </div>
+
+        <p class="summary-trust-note mt-4 text-center"> 100% Safe & Secure Checkout · FSSAI Certified Stone-Ground Spices
+        </p>
+
+        <div class="text-center mt-3">
+          <a href="/shop/" class="continue-shopping-link">
+            ← Continue Shopping
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

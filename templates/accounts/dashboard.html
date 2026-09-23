@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}My Account — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  <div class="flex flex-col lg:flex-row gap-8">
+    
+    {% include "accounts/_nav.html" %}
+
+    {# Main content area #}
+    <main class="flex-1 space-y-8">
+      
+      {# Welcome card #}
+      <div class="bg-gradient-to-r from-cream-warm to-amber-50 rounded-3xl p-6 md:p-8 border border-amber-200/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-turmeric-dark">Member Overview</span>
+          <h1 class="font-serif text-2xl md:text-3xl font-bold text-stone-900 mt-1">Hello, {{ user.first_name|default:user.username }}!</h1>
+          <p class="text-stone-600 text-sm mt-1">Welcome to your MU Magic Masala kitchen hub. Track deliveries, manage shipping details, and view your saved favorites.</p>
+        </div>
+        <a href="/shop/" class="btn btn-primary btn-sm flex-shrink-0"> Explore Spices
+        </a>
+      </div>
+
+      {# Quick Stats #}
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <a href="{% url 'accounts:order_list' %}" class="bg-white p-5 rounded-2xl border border-stone-100 shadow-xs hover:border-amber-300 transition-colors">
+          <div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Total Orders</div>
+          <div class="text-2xl font-bold text-stone-900 mt-1">{{ user.orders.count }}</div>
+          <div class="text-xs text-masala-red font-medium mt-1">View history →</div>
+        </a>
+
+        <a href="{% url 'accounts:address_list' %}" class="bg-white p-5 rounded-2xl border border-stone-100 shadow-xs hover:border-amber-300 transition-colors">
+          <div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Saved Addresses</div>
+          <div class="text-2xl font-bold text-stone-900 mt-1">{{ user.addresses.count }}</div>
+          <div class="text-xs text-masala-red font-medium mt-1">Manage addresses →</div>
+        </a>
+
+        <a href="{% url 'accounts:wishlist' %}" class="bg-white p-5 rounded-2xl border border-stone-100 shadow-xs hover:border-amber-300 transition-colors">
+          <div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Saved in Wishlist</div>
+          <div class="text-2xl font-bold text-stone-900 mt-1">{{ user.wishlist.count }}</div>
+          <div class="text-xs text-masala-red font-medium mt-1">View favorites →</div>
+        </a>
+      </div>
+
+      {# Recent Orders Section #}
+      <div class="bg-white rounded-2xl border border-stone-100 p-6 shadow-xs">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-stone-100">
+          <div>
+            <h2 class="font-serif text-xl font-bold text-stone-900">Recent Orders</h2>
+            <p class="text-stone-500 text-xs mt-0.5">Your latest spice deliveries and status</p>
+          </div>
+          {% if recent_orders %}
+          <a href="{% url 'accounts:order_list' %}" class="text-xs font-bold text-masala-red hover:underline"> View All Orders ({{ user.orders.count }})
+          </a>
+          {% endif %}
+        </div>
+
+        {% if recent_orders %}
+        <div class="divide-y divide-stone-100">
+          {% for order in recent_orders %}
+          <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-stone-900 text-sm">#{{ order.order_number }}</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold
+                  {% if order.order_status == 'delivered' %}bg-green-100 text-green-800
+                  {% elif order.order_status == 'cancelled' %}bg-red-100 text-red-800
+                  {% else %}bg-amber-100 text-amber-800{% endif %}">
+                  {{ order.get_order_status_display }}
+                </span>
+              </div>
+              <p class="text-xs text-stone-500">Placed on {{ order.created_at|date:"M d, Y" }} • Total: ₹{{ order.total|floatformat:0 }}</p>
+            </div>
+            <a href="{% url 'accounts:order_detail' order.order_number %}" class="btn btn-secondary btn-sm text-xs font-semibold self-start sm:self-auto"> View Order Details
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-10 space-y-3">
+          <p class="text-stone-500 text-sm">You haven't placed any orders yet.</p>
+          <a href="/shop/" class="btn btn-primary btn-sm">Start Your First Order</a>
+        </div>
+        {% endif %}
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+{% endblock %}

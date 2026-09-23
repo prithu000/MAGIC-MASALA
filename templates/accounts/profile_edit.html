@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}Edit Profile — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  <div class="flex flex-col lg:flex-row gap-8">
+    
+    {% include "accounts/_nav.html" %}
+
+    <main class="flex-1">
+      
+      <div class="max-w-2xl bg-white rounded-2xl border border-stone-100 p-6 md:p-8 shadow-xs">
+        <div class="pb-6 mb-6 border-b border-stone-100">
+          <h1 class="font-serif text-2xl font-bold text-stone-900">Personal Profile</h1>
+          <p class="text-stone-500 text-xs mt-0.5">Update your account name, contact numbers, and profile photo</p>
+        </div>
+
+        {% if form.errors %}
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-3.5 space-y-1">
+          {% for field, errors in form.errors.items %}
+            <p class="text-xs">• <strong>{{ field|capfirst }}:</strong> {{ errors.0 }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="space-y-5">
+          {% csrf_token %}
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">First Name <span class="text-masala-red">*</span></label>
+              <input type="text" name="first_name" required value="{{ form.first_name.value|default:'' }}" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+            </div>
+
+            <div>
+              <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Last Name <span class="text-masala-red">*</span></label>
+              <input type="text" name="last_name" required value="{{ form.last_name.value|default:'' }}" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Email Address</label>
+            <input type="email" disabled value="{{ user.email }}" class="form-input w-full rounded-xl text-sm bg-stone-50 border-stone-200 text-stone-400 cursor-not-allowed">
+            <span class="text-[11px] text-stone-400 mt-1 block">Email address cannot be changed directly for security reasons.</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Primary Phone</label>
+              <input type="tel" name="phone" value="{{ form.phone.value|default:'' }}" placeholder="+91 94102 65521" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+            </div>
+
+            <div>
+              <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Alternate Phone (Optional)</label>
+              <input type="tel" name="alternate_phone" value="{{ form.alternate_phone.value|default:'' }}" placeholder="+91 94102 65521" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Profile Avatar</label>
+            {% if user.profile.avatar %}
+            <div class="flex items-center gap-4 mb-3">
+              <img src="{{ user.profile.avatar.url }}" alt="{{ user.get_full_name }}" class="w-14 h-14 rounded-full object-cover border border-stone-200">
+              <span class="text-xs text-stone-500">Current photo</span>
+            </div>
+            {% endif %}
+            <input type="file" name="avatar" accept="image/*" class="text-xs text-stone-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-cream file:text-stone-700 hover:file:bg-amber-100 cursor-pointer">
+          </div>
+
+          <div class="pt-6 border-t border-stone-100">
+            <button type="submit" class="btn btn-primary px-8 py-3 rounded-xl font-semibold shadow-md"> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+{% endblock %}

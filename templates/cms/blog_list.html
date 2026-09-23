@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block meta_title %}Blog & Recipes — {{ site_settings.brand_name }}{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-14">
+  <h1 class="font-serif text-3xl font-bold mb-2 text-center">Recipes & Guides</h1>
+  <p class="text-center text-stone-mid mb-10">How to use what you've ordered — and why it matters.</p>
+  <div class="grid md:grid-cols-3 gap-8">
+    {% for post in posts %}
+    <a href="{{ post.get_absolute_url }}" class="card group">
+      {% if post.featured_image %}
+      <div style="aspect-ratio:16/9;overflow:hidden;">
+        <img src="{{ post.featured_image.url }}" alt="{{ post.featured_image_alt|default:post.title }}" loading="lazy" style="width:100%;height:100%;object-fit:cover;transition:transform 0.4s;" class="group-hover:scale-105">
+      </div>
+      {% endif %}
+      <div class="p-5">
+        <p class="text-xs text-stone-mid mb-2">{{ post.published_at|date:"d M Y" }}</p>
+        <h2 class="font-serif font-bold text-lg leading-snug">{{ post.title }}</h2>
+      </div>
+    </a>
+    {% empty %}
+    <div class="col-span-3 text-center text-stone-mid py-12">No posts yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

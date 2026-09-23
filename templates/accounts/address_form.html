@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}{{ title|default:"Address" }} — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  <div class="flex flex-col lg:flex-row gap-8">
+    
+    {% include "accounts/_nav.html" %}
+
+    <main class="flex-1">
+      
+      <div class="max-w-2xl bg-white rounded-2xl border border-stone-100 p-6 md:p-8 shadow-xs">
+        <div class="flex items-center justify-between pb-6 mb-6 border-b border-stone-100">
+          <div>
+            <h1 class="font-serif text-2xl font-bold text-stone-900">{{ title }}</h1>
+            <p class="text-stone-500 text-xs mt-0.5">Please provide accurate shipping information</p>
+          </div>
+          <a href="{% url 'accounts:address_list' %}" class="btn btn-secondary btn-sm text-xs"> Cancel
+          </a>
+        </div>
+
+        {% if form.errors %}
+        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-3.5 space-y-1">
+          <p>Please correct the errors indicated below:</p>
+          {% for field, errors in form.errors.items %}
+            <p class="text-xs">• <strong>{{ field|capfirst }}:</strong> {{ errors.0 }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-4">
+          {% csrf_token %}
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Full Name <span class="text-masala-red">*</span></label>
+              <input type="text" name="full_name" required value="{{ form.full_name.value|default:'' }}" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+            </div>
+
+            <div>
+              <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Phone Number <span class="text-masala-red">*</span></label>
+              <input type="tel" name="phone" required value="{{ form.phone.value|default:'' }}" placeholder="10-digit mobile number" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Flat / House No., Street, Area <span class="text-masala-red">*</span></label>
+            <input type="text" name="address_line1" required value="{{ form.address_line1.value|default:'' }}" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+          </div>
+
+          <div>
+            <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Apartment / Colony (Optional)</label>
+            <input type="text" name="address_line2" value="{{ form.address_line2.value|default:'' }}" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+          </div>
+
+          <div>
+            <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Landmark (Optional)</label>
+            <input type="text" name="landmark" value="{{ form.landmark.value|default:'' }}" placeholder="Near Temple / Metro station" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 block">PIN Code <span class="text-masala-red">*</span></label>
+                <span id="account-pin-status" class="text-xs font-semibold" style="display:none;"></span>
+              </div>
+              <div style="position: relative;">
+                <input type="text" id="account-pincode" name="pincode" required value="{{ form.pincode.value|default:'' }}" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="6-digit PIN" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red" style="padding-right: 36px;">
+                <div id="account-pin-spinner" style="display:none; position:absolute; right:10px; top:50%; margin-top:-9px; width:18px; height:18px; border:2px solid #D97706; border-top-color:transparent; border-radius:50%; animation:spin 0.7s linear infinite;"></div>
+                <div id="account-pin-check" style="display:none; position:absolute; right:10px; top:50%; margin-top:-9px; color:#15803D;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+              </div>
+              <p id="account-pin-helper" class="text-xs text-stone-mid mt-1">Enter 6-digit PIN to auto-fill</p>
+            </div>
+
+            <div>
+              <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">City / District <span class="text-masala-red">*</span></label>
+              <input type="text" id="account-city" name="city" required value="{{ form.city.value|default:'' }}" placeholder="City or District" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+            </div>
+
+            <div>
+              <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">State <span class="text-masala-red">*</span></label>
+              <input type="text" id="account-state" name="state" required value="{{ form.state.value|default:'' }}" placeholder="State" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-2 block">Address Type</label>
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="address_type" value="home" {% if form.address_type.value == 'home' or not form.address_type.value %}checked{% endif %} class="text-masala-red focus:ring-masala-red">
+                <span>Home</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="address_type" value="work" {% if form.address_type.value == 'work' %}checked{% endif %} class="text-masala-red focus:ring-masala-red">
+                <span>Work / Office</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="radio" name="address_type" value="other" {% if form.address_type.value == 'other' %}checked{% endif %} class="text-masala-red focus:ring-masala-red">
+                <span>Other</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <label class="flex items-center gap-2 cursor-pointer text-sm">
+              <input type="checkbox" name="is_default" {% if form.is_default.value %}checked{% endif %} class="rounded text-masala-red focus:ring-masala-red">
+              <span class="text-xs text-stone-700 font-medium">Make this my default shipping address</span>
+            </label>
+          </div>
+
+          <div class="pt-6 border-t border-stone-100 flex items-center gap-3">
+            <button type="submit" class="btn btn-primary px-8 py-3 rounded-xl font-semibold shadow-md"> Save Address
+            </button>
+            <a href="{% url 'accounts:address_list' %}" class="btn btn-secondary px-5 py-3 rounded-xl font-semibold"> Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+ const pinInput = document.getElementById('account-pincode');
+ const cityInput = document.getElementById('account-city');
+ const stateInput = document.getElementById('account-state');
+ const statusEl = document.getElementById('account-pin-status');
+ const spinnerEl = document.getElementById('account-pin-spinner');
+ const checkEl = document.getElementById('account-pin-check');
+ const helperEl = document.getElementById('account-pin-helper');
+ let lastChecked = '';
+ let timer = null;
+ async function lookup(pin) {
+ pin = (pin || '').trim().replace(/\D/g, '');
+ if (pin.length !== 6) {
+ if (spinnerEl) spinnerEl.style.display = 'none';
+ if (checkEl) checkEl.style.display = 'none';
+ if (statusEl) statusEl.style.display = 'none';
+ if (helperEl) helperEl.textContent = 'Enter 6-digit PIN to auto-fill';
+ return;
+    }
+ if (pin === lastChecked && cityInput.value && stateInput.value) return;
+ lastChecked = pin;
+ if (spinnerEl) spinnerEl.style.display = 'block';
+ if (checkEl) checkEl.style.display = 'none';
+ if (statusEl) {
+ statusEl.style.display = 'inline-block';
+ statusEl.style.color = '#B45309';
+ statusEl.textContent = 'Verifying...';
+    }
+ try {
+ const res = await fetch('/api/pincode/' + encodeURIComponent(pin) + '/');
+ const data = await res.json();
+ if (spinnerEl) spinnerEl.style.display = 'none';
+ if (data && data.valid) {
+ if (checkEl) checkEl.style.display = 'block';
+ if (cityInput) cityInput.value = data.city || '';
+ if (stateInput) stateInput.value = data.state || '';
+ if (statusEl) {
+ statusEl.style.display = 'inline-block';
+ statusEl.style.color = '#15803D';
+ statusEl.innerHTML = ' ' + (data.city ? data.city + ', ' : '') + data.state;
+        }
+ if (helperEl) {
+ helperEl.textContent = 'City & State auto-filled';
+ helperEl.style.color = '#15803D';
+        }
+      } else {
+ if (checkEl) checkEl.style.display = 'none';
+ if (statusEl) {
+ statusEl.style.display = 'inline-block';
+ statusEl.style.color = '#B91C1C';
+ statusEl.textContent = '️ Invalid PIN';
+        }
+      }
+    } catch (e) {
+ if (spinnerEl) spinnerEl.style.display = 'none';
+    }
+  }
+ if (pinInput) {
+ pinInput.addEventListener('input', function() {
+ const val = this.value.replace(/\D/g, '').slice(0, 6);
+ this.value = val;
+ clearTimeout(timer);
+ if (val.length === 6) {
+ timer = setTimeout(() => lookup(val), 150);
+      }
+    });
+ if (pinInput.value.trim().length === 6 && (!cityInput.value || !stateInput.value)) {
+ lookup(pinInput.value);
+    }
+  }
+});
+</script>
+{% endblock %}

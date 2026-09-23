@@ -1,0 +1,51 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Brevo SMTP Connection Verified | MU Magic Masala{% endblock %}
+
+{% block content %}
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="center" style="padding-bottom: 20px;">
+      <div style="width: 52px; height: 52px; background-color: #ecfdf5; border: 2px solid #a7f3d0; border-radius: 50%; line-height: 52px; font-size: 24px; margin: 0 auto 12px auto; color: #059669; text-align: center;">
+        ⚡
+      </div>
+      <span style="display: inline-block; background-color: #ecfdf5; color: #065f46; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 10px;">
+        SMTP Connection Active
+      </span>
+      <h2 style="margin: 0 0 8px 0; color: #1c1917; font-size: 22px; font-weight: 800; font-family: Georgia, serif;">
+        Brevo Email Relay is Working!
+      </h2>
+      <p style="margin: 0; font-size: 14px; color: #57534e;">
+        This test email confirms that your MU Magic Masala Brevo SMTP credentials, TLS handshake, and delivery pipeline are working with 100% success.
+      </p>
+    </td>
+  </tr>
+
+  <!-- Configuration Summary Box -->
+  <tr>
+    <td style="background-color: #fafaf9; border: 1px solid #e7e5e4; border-radius: 10px; padding: 18px 20px;">
+      <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: #1c1917;">
+        Diagnostic Snapshot:
+      </h4>
+      <table border="0" cellpadding="4" cellspacing="0" width="100%" style="font-size: 13px; color: #44403c;">
+        <tr>
+          <td width="40%"><strong>SMTP Host:</strong></td>
+          <td width="60%">{{ smtp_host|default:"smtp-relay.brevo.com" }}:{{ smtp_port|default:"587" }}</td>
+        </tr>
+        <tr>
+          <td><strong>Sender Address:</strong></td>
+          <td>{{ from_email|default:"Mahilaudyogmagic@gmail.com" }}</td>
+        </tr>
+        <tr>
+          <td><strong>Timestamp:</strong></td>
+          <td>{{ timestamp }}</td>
+        </tr>
+        <tr>
+          <td><strong>Relay Engine:</strong></td>
+          <td>Brevo Cloud Transactional Engine</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+{% endblock %}

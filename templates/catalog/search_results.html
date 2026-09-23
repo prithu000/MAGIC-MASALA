@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta_title %}Search Results — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+  <h1 class="font-serif text-2xl font-bold mb-2">Search Results</h1>
+  <p class="text-stone-mid mb-8">{% if query %}"{{ query }}" — {{ products.count }} result{{ products.count|pluralize }}{% endif %}</p>
+
+  <form method="get" action="/search/" class="flex gap-3 mb-10 max-w-lg">
+    <input type="search" name="q" value="{{ query }}" class="form-input flex-1" placeholder="Search for masalas, spices…" id="search-q">
+    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+  </form>
+
+  {% if products %}
+  <div class="product-grid">
+    {% for product in products %}
+      {% include "partials/_product_card.html" with product=product %}
+    {% endfor %}
+  </div>
+  {% elif query %}
+  <div class="text-center py-16">
+    <p class="text-stone-mid mb-4">No products found for "{{ query }}".</p>
+    <a href="/shop/" class="btn btn-primary">Browse All Products</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

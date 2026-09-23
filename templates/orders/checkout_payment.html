@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}Payment Method — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-10">
+  {# Step indicator #}
+  <div class="flex items-center justify-center gap-4 mb-10">
+    <div class="flex items-center gap-2 text-sm font-medium text-stone-400">
+      <span class="w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-xs font-bold">1</span>
+      <span>Address</span>
+    </div>
+    <div class="w-12 h-px bg-stone-300"></div>
+    <div class="flex items-center gap-2 text-sm font-semibold text-masala-red">
+      <span class="w-7 h-7 rounded-full bg-masala-red text-white flex items-center justify-center text-xs font-bold">2</span>
+      <span>Payment</span>
+    </div>
+    <div class="w-12 h-px bg-stone-300"></div>
+    <div class="flex items-center gap-2 text-sm font-medium text-stone-400">
+      <span class="w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-xs font-bold">3</span>
+      <span>Confirmation</span>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-8">
+    {# Payment Selection Form #}
+    <div class="md:col-span-2 space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
+        <h2 class="font-serif text-2xl font-bold text-charcoal mb-2">Select Payment Method</h2>
+        <p class="text-sm text-stone-mid mb-6">Choose how you would like to complete your order.</p>
+
+        <form method="post" action="{% url 'orders:create_order' %}" id="payment-method-form" x-data="{ method: 'online' }">
+          {% csrf_token %}
+
+          <div class="space-y-4">
+            {# Option 1: Full Online Payment #}
+            <label class="block cursor-pointer p-4 rounded-xl border-2 transition-all"
+                   :class="method === 'online' ? 'border-masala-red bg-amber-50/40' : 'border-stone-200 hover:border-stone-300'">
+              <div class="flex items-start gap-4">
+                <input type="radio" name="payment_method" value="online" x-model="method" class="mt-1 text-masala-red focus:ring-masala-red">
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-semibold text-base text-charcoal">Pay Online (Instant & Recommended)</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">Fastest</span>
+                  </div>
+                  <p class="text-xs text-stone-mid mt-1">UPI (GPay, PhonePe, Paytm), Credit/Debit Cards, NetBanking via secure Razorpay.</p>
+                  <div class="flex items-center gap-2 mt-3">
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded text-stone-600">UPI</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded text-stone-600">Visa / Mastercard</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded text-stone-600">NetBanking</span>
+                  </div>
+                </div>
+              </div>
+            </label>
+
+            {# Option 2: Cash on Delivery with Advance #}
+            <label class="block cursor-pointer p-4 rounded-xl border-2 transition-all"
+                   :class="method === 'cod' ? 'border-masala-red bg-amber-50/40' : 'border-stone-200 hover:border-stone-300'">
+              <div class="flex items-start gap-4">
+                <input type="radio" name="payment_method" value="cod" x-model="method" class="mt-1 text-masala-red focus:ring-masala-red">
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-semibold text-base text-charcoal">Cash on Delivery (COD)</span>
+                    <span class="text-xs text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-medium">+₹{{ settings.cod_charge|floatformat:0 }} Handling</span>
+                  </div>
+                  <p class="text-xs text-stone-mid mt-1"> Pay <strong>{{ settings.cod_advance_percent|floatformat:0 }}% advance online now</strong> to confirm the shipment. Pay the balance in cash at delivery.
+                  </p>
+
+                  {# COD Breakdown accordion in preview #}
+                  <div x-show="method === 'cod'" x-transition class="mt-4 p-4 rounded-lg bg-white border border-stone-200 text-xs space-y-2">
+                    <div class="flex justify-between text-stone-600">
+                      <span>Online Advance ({{ settings.cod_advance_percent|floatformat:0 }}%):</span>
+                      <span class="font-semibold text-charcoal">₹{{ cod_data.cod_advance }}</span>
+                    </div>
+                    <div class="flex justify-between text-stone-600">
+                      <span>Balance Due at Doorstep:</span>
+                      <span class="font-semibold text-charcoal">₹{{ cod_data.cod_remaining }}</span>
+                    </div>
+                    <div class="border-t border-stone-100 pt-2 flex justify-between text-stone-500">
+                      <span>Includes ₹{{ settings.cod_charge|floatformat:0 }} courier handling fee</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div class="mt-8">
+            <button type="submit" class="btn btn-primary btn-full text-base py-3.5" id="place-order-btn"> Continue to Payment
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {# Trust Badges #}
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div class="bg-stone-50 rounded-xl p-4 border border-stone-200">
+          <svg class="w-6 h-6 text-green-700 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <p class="text-xs font-semibold text-charcoal">256-Bit SSL</p>
+          <p class="text-xs text-stone-mid">Secure Payments</p>
+        </div>
+        <div class="bg-stone-50 rounded-xl p-4 border border-stone-200">
+          <svg class="w-6 h-6 text-amber-700 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <p class="text-xs font-semibold text-charcoal">Stone Ground</p>
+          <p class="text-xs text-stone-mid">Fresh Small Batches</p>
+        </div>
+        <div class="bg-stone-50 rounded-xl p-4 border border-stone-200">
+          <svg class="w-6 h-6 text-blue-700 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <p class="text-xs font-semibold text-charcoal">Damage Guarantee</p>
+          <p class="text-xs text-stone-mid">Hassle-Free Replacement</p>
+        </div>
+      </div>
+    </div>
+
+    {# Sidebar Order Summary #}
+    <div class="md:col-span-1">
+      <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 sticky" style="top: 80px;">
+        <h3 class="font-semibold text-base mb-4 text-charcoal">Order Summary</h3>
+
+        <div class="divide-y divide-stone-100 max-h-64 overflow-y-auto mb-4 pr-1">
+          {% for item in items %}
+            <div class="py-2.5 flex items-center gap-3 text-xs">
+              {% if item.product and item.product.main_image %}
+                <img src="{{ item.product.thumbnail.url }}" alt="{{ item.product.name }}" class="w-10 h-10 rounded object-cover flex-shrink-0">
+              {% elif item.fixed_combo and item.fixed_combo.image %}
+                <img src="{{ item.fixed_combo.image.url }}" alt="{{ item.fixed_combo.name }}" class="w-10 h-10 rounded object-cover flex-shrink-0">
+              {% elif item.custom_combo_selection %}
+                <img src="{% static 'images/custom-combo-box.jpg' %}" alt="Build Your Own 10-Masala Box" class="w-10 h-10 rounded object-cover flex-shrink-0">
+              {% else %}
+                <img src="{% static 'images/custom-combo-box.jpg' %}" alt="Combo Box" class="w-10 h-10 rounded object-cover flex-shrink-0">
+              {% endif %}
+              <div class="flex-1 min-w-0">
+                <p class="font-medium text-charcoal truncate">
+                  {% if item.product %}
+                    {{ item.product.name }}
+                  {% elif item.fixed_combo %}
+                    {{ item.fixed_combo.name }}
+                  {% elif item.custom_combo_selection %}
+                    {{ item.custom_combo_selection.rule.name|default:"Build Your Own 10-Masala Box" }}
+                  {% else %}
+                    {{ item }}
+                  {% endif %}
+                </p>
+                <p class="text-stone-mid"> Qty: {{ item.quantity }}
+                  {% if item.custom_combo_selection %}
+                    <span class="text-masala-red font-medium">({{ item.custom_combo_selection.item_count }} Spices)</span>
+                  {% endif %}
+                </p>
+              </div>
+              <span class="font-semibold text-charcoal">₹{{ item.line_total }}</span>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="space-y-2 text-xs border-t border-stone-200 pt-3">
+          <div class="flex justify-between text-stone-600">
+            <span>Subtotal</span>
+            <span class="font-medium text-charcoal">₹{{ subtotal }}</span>
+          </div>
+          {% if discount > 0 %}
+            <div class="flex justify-between text-green-700 font-medium">
+              <span>Coupon Discount</span>
+              <span>–₹{{ discount }}</span>
+            </div>
+          {% endif %}
+          <div class="flex justify-between text-stone-600">
+            <span>GST (5%)</span>
+            <span class="font-medium text-charcoal">₹{{ tax_amount }}</span>
+          </div>
+          <div class="flex justify-between text-stone-600">
+            <span>Shipping</span>
+            {% if free_shipping %}
+              <span class="text-green-700 font-medium">FREE</span>
+            {% else %}
+              <span>₹{{ shipping }}</span>
+            {% endif %}
+          </div>
+          <div class="border-t border-stone-200 pt-3 flex justify-between text-base font-bold text-charcoal">
+            <span>Total Payable</span>
+            <span class="text-masala-red">₹{{ total }}</span>
+          </div>
+        </div>
+
+        <div class="mt-6 border-t border-stone-100 pt-4">
+          <a href="/cart/" class="text-xs text-stone-mid hover:text-masala-red transition-colors flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg> Edit Cart Items
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

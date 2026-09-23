@@ -1,0 +1,553 @@
+{% extends 'admin/base.html' %}
+{% load i18n unfold %}
+
+{% block title %}Store Owner Manual | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block content %}
+<style>
+  /* Scoped contrast fixes for Store Owner Guide */
+  .guide-nav-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 9999px !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  }
+  .guide-nav-pill--primary {
+    background-color: #ffffff !important;
+    color: #881337 !important; /* deep rose-900 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+  }
+  .guide-nav-pill--primary:hover {
+    background-color: #fef2f2 !important;
+    color: #4c0519 !important;
+  }
+  .guide-nav-pill--secondary {
+    background-color: rgba(30, 10, 15, 0.65) !important;
+    color: #ffffff !important;
+    backdrop-filter: blur(4px) !important;
+  }
+  .guide-nav-pill--secondary:hover {
+    background-color: rgba(20, 5, 10, 0.9) !important;
+    color: #fef08a !important;
+    border-color: rgba(254, 240, 138, 0.5) !important;
+  }
+
+  /* Dark mode card contrast fixes */
+  html.dark .guide-card-sub,
+  .dark .guide-card-sub {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+  }
+  html.dark .guide-card-sub h3,
+  .dark .guide-card-sub h3 {
+    color: #f8fafc !important;
+  }
+  html.dark .guide-card-sub p,
+  html.dark .guide-card-sub li,
+  .dark .guide-card-sub p,
+  .dark .guide-card-sub li {
+    color: #cbd5e1 !important;
+  }
+  html.dark .guide-card-sub code,
+  .dark .guide-card-sub code {
+    background-color: #0f172a !important;
+    color: #38bdf8 !important;
+    padding: 0.15rem 0.4rem !important;
+    border-radius: 0.25rem !important;
+  }
+
+  /* Light mode card contrast */
+  .guide-card-sub {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+  }
+  .guide-card-sub h3 {
+    color: #0f172a;
+  }
+  .guide-card-sub p,
+  .guide-card-sub li {
+    color: #475569;
+  }
+  .guide-card-sub code {
+    background-color: #e2e8f0;
+    color: #0284c7;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+  }
+</style>
+
+<div class="space-y-6 pb-12">
+
+  <!-- Header Banner -->
+  <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-950 via-red-900 to-amber-950 text-white p-6 sm:p-8 shadow-xl border border-red-900/50">
+    <div class="relative z-10 max-w-4xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm mb-3 text-amber-200 border border-white/20">
+        <span class="material-symbols-outlined text-sm">menu_book</span> Official Store Operations Manual
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-white mb-2">
+        MU Magic Masala — Store Owner's Guide (दुकानदार गाइड)
+      </h1>
+      <p class="text-amber-100/90 text-sm sm:text-base leading-relaxed">
+        Admin Panel ke har feature ko asaan bhasha (Hindi & English) me samjhein. Yahan har button, setting aur rule ka detail manual diya gaya hai jisse aapka store manage karna bilkul aasan ho.
+      </p>
+      
+      <div class="mt-5 flex flex-wrap gap-2.5">
+        <a href="#products-section" class="guide-nav-pill guide-nav-pill--primary">
+          <span class="material-symbols-outlined text-sm">inventory_2</span> Products (मसाले)
+        </a>
+        <a href="#combos-section" class="guide-nav-pill guide-nav-pill--secondary">
+          <span class="material-symbols-outlined text-sm">inventory</span> Combos & Custom Box
+        </a>
+        <a href="#hero-section" class="guide-nav-pill guide-nav-pill--secondary">
+          <span class="material-symbols-outlined text-sm">aspect_ratio</span> Banner Sizes (बैनर)
+        </a>
+        <a href="#orders-section" class="guide-nav-pill guide-nav-pill--secondary">
+          <span class="material-symbols-outlined text-sm">shopping_bag</span> Orders & COD Advance
+        </a>
+        <a href="#carts-section" class="guide-nav-pill guide-nav-pill--secondary">
+          <span class="material-symbols-outlined text-sm">shopping_cart</span> Customer Carts (कार्ट्स)
+        </a>
+        <a href="#emails-section" class="guide-nav-pill guide-nav-pill--secondary">
+          <span class="material-symbols-outlined text-sm">mail</span> Brevo Emails (ईमेल)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Snapshot Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+    <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs text-base-500 font-medium">Total Products</div>
+      <div class="text-2xl font-bold text-base-900 dark:text-white mt-1">{{ stats.total_products }}</div>
+      <div class="text-[11px] text-emerald-600 mt-1 flex items-center gap-1 font-medium">
+        <span class="material-symbols-outlined text-xs">check_circle</span> Live on Catalog
+      </div>
+    </div>
+    <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs text-base-500 font-medium">Active Customer Carts</div>
+      <div class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{{ stats.active_carts }}</div>
+      <div class="text-[11px] text-base-500 mt-1">Live customer cart sessions</div>
+    </div>
+    <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs text-base-500 font-medium">Pending Orders</div>
+      <div class="text-2xl font-bold text-amber-600 mt-1">{{ stats.pending_orders }}</div>
+      <div class="text-[11px] text-base-500 mt-1">Requires fulfillment / advance check</div>
+    </div>
+    <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs text-base-500 font-medium">Active Hero Slides</div>
+      <div class="text-2xl font-bold text-base-900 dark:text-white mt-1">{{ stats.active_slides }}</div>
+      <div class="text-[11px] text-base-500 mt-1">1920x500 & 1080x600</div>
+    </div>
+    <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-4 shadow-sm col-span-2 sm:col-span-1">
+      <div class="text-xs text-base-500 font-medium">Build-Your-Own Box</div>
+      <div class="text-base font-bold text-red-700 dark:text-red-400 mt-1 truncate">{{ stats.byo_rule }}</div>
+      <div class="text-[11px] text-base-500 mt-1">Flat price box offer</div>
+    </div>
+  </div>
+
+  <!-- Table of Contents & Quick Search Filter -->
+  <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-800 dark:text-amber-300 flex items-center justify-center font-bold">
+        <span class="material-symbols-outlined">lightbulb</span>
+      </div>
+      <div>
+        <h4 class="font-semibold text-sm text-base-900 dark:text-white">Quick Navigation / Tips</h4>
+        <p class="text-xs text-base-600 dark:text-base-400">Neeche diye gaye kisi bhi section par click karke direct us feature ka manual padhein.</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2 text-xs">
+      <a href="/admin/catalog/product/add/" class="px-3 py-1.5 rounded-lg bg-red-700 text-white font-medium hover:bg-red-800 transition">
+        + Naya Product Add Karein
+      </a>
+      <a href="/admin/cms/heroslide/" class="px-3 py-1.5 rounded-lg bg-base-200 dark:bg-base-800 text-base-800 dark:text-base-200 font-medium hover:bg-base-300 transition"> Hero Banner Change Karein
+      </a>
+      <a href="/admin/orders/order/" class="px-3 py-1.5 rounded-lg bg-base-200 dark:bg-base-800 text-base-800 dark:text-base-200 font-medium hover:bg-base-300 transition"> Orders Check Karein
+      </a>
+    </div>
+  </div>
+
+  <!-- SECTION 1: PRODUCTS & INVENTORY -->
+  <div id="products-section" class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-6 shadow-sm">
+    <div class="flex items-center gap-3 border-b border-base-100 dark:border-base-800 pb-4 mb-5">
+      <span class="p-2 rounded-lg bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400 material-symbols-outlined">inventory_2</span>
+      <div>
+        <h2 class="text-lg font-bold text-base-900 dark:text-white">1. Products & Inventory (मसाले और प्रोडक्ट्स कैसे जोड़ें)</h2>
+        <p class="text-xs text-base-500">Shop page par dikhne wale masalon ki complete details yahan se set hoti hain.</p>
+      </div>
+      <a href="/admin/catalog/product/" class="ml-auto text-xs text-red-600 font-semibold hover:underline flex items-center gap-1"> All Products Open Karein <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-red-700 dark:text-red-400">
+          <span class="material-symbols-outlined text-base">payments</span> MRP vs Selling Price (कीमत और डिस्काउंट)
+        </h3>
+        <ul class="space-y-1.5 text-xs">
+          <li><strong>MRP (Maximum Retail Price):</strong> Ye masale ki print rate hai (jaise ₹120).</li>
+          <li><strong>Price (Selling Price):</strong> Jis discount rate par aap customer ko bechna chahte hain (jaise ₹99).</li>
+          <li><span class="text-emerald-600 dark:text-emerald-400 font-semibold">Automatic Discount Tag:</span> Website khud calculate karke badge dikhayegi jaise "18% OFF" aur MRP par cut lagayegi.</li>
+        </ul>
+      </div>
+
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-red-700 dark:text-red-400">
+          <span class="material-symbols-outlined text-base">layers</span> Product Variants (100g, 200g, 500g Packs)
+        </h3>
+        <ul class="space-y-1.5 text-xs">
+          <li>Har product ke page ke neeche <strong>"Product Variants" inline</strong> hota hai.</li>
+          <li>Agar masale ke multiple pack sizes hain (100g pack, 250g pack), to alag product banane ki zaroorat nahi hai.</li>
+          <li>Bas variant me weight (e.g. 200g), MRP, Price aur Stock daal dein. Customer product page par dropdown se select kar sakega.</li>
+        </ul>
+      </div>
+
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-red-700 dark:text-red-400">
+          <span class="material-symbols-outlined text-base">format_list_bulleted</span> Accordion Tabs (स्वाद, सामग्री और फायदे)
+        </h3>
+        <ul class="space-y-1.5 text-xs">
+          <li><strong>Taste Profile:</strong> Masale ka taste kaisa hai (jaise "Zesty, Warm, Pungent").</li>
+          <li><strong>Ingredients:</strong> Isme kaun-kaun se masale hain (e.g., Cumin, Coriander, Black Pepper).</li>
+          <li><strong>Uses / How to Use:</strong> Kaunsi dishes me kab daalna hai (e.g., "Add 1 tsp during tempering").</li>
+          <li><strong>Shelf Life:</strong> Kitne mahine tak kharab nahi hoga (e.g., "12 Months from packaging").</li>
+        </ul>
+      </div>
+
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-red-700 dark:text-red-400">
+          <span class="material-symbols-outlined text-base">star</span> Featured & Bestseller Flags
+        </h3>
+        <ul class="space-y-1.5 text-xs">
+          <li><strong>Is Featured / Bestseller Checkbox:</strong> Isko tick karne par ye masala Homepage ke "Bestseller" section me aayega.</li>
+          <li><span class="text-amber-600 dark:text-amber-400 font-semibold">Homepage Limit:</span> Homepage par automatically top 4 bestsellers dikhte hain, aur baaki sab "View All Spices" par click karke shop me dikhte hain.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: COMBOS MANAGEMENT -->
+  <div id="combos-section" class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-6 shadow-sm">
+    <div class="flex items-center gap-3 border-b border-base-100 dark:border-base-800 pb-4 mb-5">
+      <span class="p-2 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 material-symbols-outlined">inventory</span>
+      <div>
+        <h2 class="text-lg font-bold text-base-900 dark:text-white">2. Combos & Build-Your-Own Box (कॉम्बो पैक्स)</h2>
+        <p class="text-xs text-base-500">Fixed combos aur 10 masalon ka custom box offer yahan se control hota hai.</p>
+      </div>
+      <a href="/admin/combos/fixedcombo/" class="ml-auto text-xs text-red-600 font-semibold hover:underline flex items-center gap-1"> Fixed Combos Open Karein <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div class="p-4 rounded-lg guide-card-sub border border-amber-200 dark:border-amber-900/40">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-amber-800 dark:text-amber-400">
+          <span class="material-symbols-outlined text-base">home</span> Fixed Combo: Homepage Par Kaunsa Dikhana Hai?
+        </h3>
+        <p class="text-xs leading-relaxed mb-2"> Fixed Combo edit karte waqt ek checkbox aata hai: <strong>"Featured On Homepage"</strong>.
+        </p>
+        <div class="p-2.5 rounded bg-white dark:bg-base-900 border border-amber-300 dark:border-amber-800 text-xs">
+          <strong>Rule:</strong> Aap jis combo par "Featured On Homepage" tick karenge, wahi ek combo Homepage par "Featured Spice Combo" card bankar dikhega jisme direct Add-To-Cart button hoga. Baaki saare combos <code>/combos/</code> page par dikhenge!
+        </div>
+      </div>
+
+      <div class="p-4 rounded-lg guide-card-sub border border-amber-200 dark:border-amber-900/40">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-amber-800 dark:text-amber-400">
+          <span class="material-symbols-outlined text-base">tune</span> Build Your Own Combo (10 for ₹999 Box)
+        </h3>
+        <p class="text-xs leading-relaxed mb-2"> Customer apne manpasand masale chun kar box bana sakte hain. Settings yahan se badlein:
+        </p>
+        <ul class="space-y-1.5 text-xs">
+          <li><strong>Required Items:</strong> Kitne masale chunne hain (default: 10 items).</li>
+          <li><strong>Fixed Price:</strong> Box ki flat price kya hogi (default: ₹999).</li>
+          <li><strong>Max Units per Spice:</strong> Ek hi masale ke maximum kitne pack le sakta hai (default: 2 pack). Isse customer saare mehnge masale ek saath nahi le sakta.</li>
+        </ul>
+        <div class="mt-2">
+          <a href="/admin/combos/customizecomborule/" class="text-xs font-semibold text-amber-800 dark:text-amber-400 underline"> Edit Build-Your-Own Rules &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: HERO SLIDES & DISPLAY ORDER -->
+  <div id="hero-section" class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-6 shadow-sm">
+    <div class="flex items-center gap-3 border-b border-base-100 dark:border-base-800 pb-4 mb-5">
+      <span class="p-2 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400 material-symbols-outlined">slideshow</span>
+      <div>
+        <h2 class="text-lg font-bold text-base-900 dark:text-white">3. Hero Slides, Banner Sizes & Display Order (बैनर और क्रम)</h2>
+        <p class="text-xs text-base-500">Homepage slider ke exact photo sizes aur "Display Order" ka matlab.</p>
+      </div>
+      <a href="/admin/cms/heroslide/" class="ml-auto text-xs text-red-600 font-semibold hover:underline flex items-center gap-1"> Hero Slides Manage Karein <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+  <!-- Banner Dimensions Box -->
+    <div class="mb-5 p-4 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50">
+      <h3 class="font-bold text-blue-900 dark:text-blue-200 mb-2 flex items-center gap-2 text-sm">
+        <span class="material-symbols-outlined text-blue-600">straighten</span> EXACT BANNER DIMENSIONS (फोटो का सही साइज)
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div class="p-3 bg-white dark:bg-base-900 rounded-lg border border-blue-100 dark:border-blue-900/60 shadow-sm">
+          <div class="font-bold text-blue-800 dark:text-blue-300 text-sm mb-1">️ Desktop Hero Banner</div>
+          <div class="text-lg font-mono font-bold text-base-900 dark:text-white">1920 × 500 Pixels</div>
+          <p class="text-base-500 mt-1">Wide, sleek horizontal banner. Graphic designer ko yahi exact size dein taki banner Build-Your-Own box jitna sleek aur balanced lage.</p>
+        </div>
+        <div class="p-3 bg-white dark:bg-base-900 rounded-lg border border-blue-100 dark:border-blue-900/60 shadow-sm">
+          <div class="font-bold text-blue-800 dark:text-blue-300 text-sm mb-1"> Mobile Hero Banner</div>
+          <div class="text-lg font-mono font-bold text-base-900 dark:text-white">1080 × 600 Pixels</div>
+          <p class="text-base-500 mt-1">Mobile screens ke liye optimized format. Mobile par yahi image automatically load hoti hai taaki text bilkul clear dikhe.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-blue-700 dark:text-blue-400">
+          <span class="material-symbols-outlined text-base">swap_vert</span> "Display Order" (प्रदर्शन क्रम) Ka Kya Matlab Hai?
+        </h3>
+        <p class="text-xs leading-relaxed"> Admin panel me har cheez (Slide, Category, Reel) me <strong>Display Order</strong> field hota hai.
+        </p>
+        <ul class="space-y-1.5 text-xs mt-2">
+          <li><strong>Number 1:</strong> Sabse pehle number par aayega (First slide).</li>
+          <li><strong>Number 2:</strong> Dusre number par aayega.</li>
+          <li><strong>Number 3:</strong> Teesri slide banega.</li>
+          <li><span class="text-blue-600 dark:text-blue-400 font-semibold">Rule:</span> Jitna chhota number hoga, utna aage dikhega.</li>
+        </ul>
+      </div>
+
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-blue-700 dark:text-blue-400">
+          <span class="material-symbols-outlined text-base">link</span> Slide Link URL & Text
+        </h3>
+        <p class="text-xs leading-relaxed"> Humne slide se distracting text overlays hata diye hain taaki aapki sundar banner photo poori dikhe.
+        </p>
+        <ul class="space-y-1.5 text-xs mt-2">
+          <li><strong>Link URL:</strong> Customer photo par click kare to kahan le jana hai (jaise <code>/shop/</code> ya <code>/combos/build/</code>).</li>
+          <li><strong>Is Active:</strong> Kisi slide ko temporarily band karna ho to bas Is Active uncheck kar dein, slide delete karne ki zaroorat nahi hai.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: ORDERS & ADVANCE -->
+  <div id="orders-section" class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-6 shadow-sm">
+    <div class="flex items-center gap-3 border-b border-base-100 dark:border-base-800 pb-4 mb-5">
+      <span class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 material-symbols-outlined">shopping_bag</span>
+      <div>
+        <h2 class="text-lg font-bold text-base-900 dark:text-white">4. Order Processing & COD Advance (ऑर्डर कैसे प्रोसेस करें)</h2>
+        <p class="text-xs text-base-500">Customer ke aane wale naye orders aur COD advance check karne ka tarika.</p>
+      </div>
+      <a href="/admin/orders/order/" class="ml-auto text-xs text-red-600 font-semibold hover:underline flex items-center gap-1"> All Orders Open Karein <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+          <span class="material-symbols-outlined text-base">percent</span> 10% COD Advance Policy
+        </h3>
+        <p class="text-xs leading-relaxed"> Fake COD orders se bachne ke liye store par 10% Advance mandatory hai.
+        </p>
+        <ul class="space-y-1.5 text-xs mt-2">
+          <li>Customer order karte waqt 10% online pay karta hai (Razorpay UPI / Card).</li>
+          <li>Baaki 90% amount delivery ke time Cash On Delivery pay hota hai.</li>
+          <li>Order list me dekhein: <strong>Advance Paid: Yes / No</strong> clear green badge me dikhta hai.</li>
+        </ul>
+      </div>
+
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+          <span class="material-symbols-outlined text-base">local_shipping</span> Order Status Workflow (स्टेप बाय स्टेप)
+        </h3>
+        <div class="space-y-2 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold">1. Placed</span>
+            <span>Customer ne checkout kiya.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">2. Processing</span>
+            <span>Advance confirm ho gaya, godown me masala pack ho raha hai.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold">3. Shipped</span>
+            <span>Courier ko de diya (Tracking details update kar dein).</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-green-100 text-green-800 font-semibold">4. Delivered</span>
+            <span>Customer ko packet mil gaya.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: CUSTOMER CARTS TRACKING -->
+  <div id="carts-section" class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-6 shadow-sm">
+    <div class="flex items-center gap-3 border-b border-base-100 dark:border-base-800 pb-4 mb-5">
+      <span class="p-2 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-400 material-symbols-outlined">shopping_cart</span>
+      <div>
+        <h2 class="text-lg font-bold text-base-900 dark:text-white">5. Customer Carts Tracking (कस्टमर कार्ट्स और बैग डिटेल्स)</h2>
+        <p class="text-xs text-base-500">Live customers aur guests ne kya masale cart me add kiye hain unki puri detail yahan dekhein.</p>
+      </div>
+      <a href="/admin/cart/cart/" class="ml-auto text-xs text-purple-600 dark:text-purple-400 font-semibold hover:underline flex items-center gap-1"> All Carts Open Karein <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-purple-700 dark:text-purple-400">
+          <span class="material-symbols-outlined text-base">visibility</span> Cart Details & Masala Breakdown
+        </h3>
+        <p class="text-xs leading-relaxed"> Admin panel me ab har customer ki live cart visible hai:
+        </p>
+        <ul class="space-y-1.5 text-xs mt-2">
+          <li><strong>User vs Guest:</strong> Login user ka naam aur email dikhta hai; guest ke liye session id dikhti hai.</li>
+          <li><strong>Items & Cart Total:</strong> Cart me kitne items hain aur kul kitne rupaye (₹) ka cart value hai.</li>
+          <li><strong>Custom 10-Masala Box Breakdown:</strong> Agar customer ne <em>Build Your Own Box</em> add kiya hai to box ke andar chune gaye sabhi 10 masalon ki puri list saaf dikhegi!</li>
+        </ul>
+      </div>
+
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-purple-700 dark:text-purple-400">
+          <span class="material-symbols-outlined text-base">notifications_active</span> Abandoned Carts & Actions
+        </h3>
+        <p class="text-xs leading-relaxed"> Cart status automatically classify hota hai:
+        </p>
+        <ul class="space-y-1.5 text-xs mt-2">
+          <li><strong>Active / Recent:</strong> P Pichle 24 ghante me customer ne cart me badlaav kiya hai.</li>
+          <li><strong>Abandoned:</strong> 24 ghante se zyada samay ho gaya aur order place nahi hua.</li>
+          <li><strong>Admin Action:</strong> Cart list me checkbox select karke <em>"Send abandoned cart reminder email"</em> action se reminder bhej sakte hain.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: EMAIL FLOW & DISPATCH -->
+  <div id="emails-section" class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-6 shadow-sm">
+    <div class="flex items-center gap-3 border-b border-base-100 dark:border-base-800 pb-4 mb-5">
+      <span class="p-2 rounded-lg bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-400 material-symbols-outlined">mail</span>
+      <div>
+        <h2 class="text-lg font-bold text-base-900 dark:text-white">6. Brevo Email Flow & Dispatch (ईमेल मैनेजमेंट)</h2>
+        <p class="text-xs text-base-500">Customers ko order confirmation, bill aur shipping status emails bhejne ka aasan tarika.</p>
+      </div>
+      <a href="/admin/core/emailsettings/1/change/" class="ml-auto text-xs text-sky-600 dark:text-sky-400 font-semibold hover:underline flex items-center gap-1"> Email Settings & Tester <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-sky-700 dark:text-sky-400">
+          <span class="material-symbols-outlined text-base">send</span> One-Click Order Email Buttons
+        </h3>
+        <p class="text-xs leading-relaxed"> Kisi bhi Order ko open karein, wahan <strong>Customer Email Communications</strong> section me do direct buttons hain:
+        </p>
+        <ul class="space-y-1.5 text-xs mt-2">
+          <li><strong>[ 📧 Send Confirmation & Bill ]:</strong> Customer ko order invoice aur details ka confirmation email bhejta hai.</li>
+          <li><strong>[ 🚚 Send Status Update Email ]:</strong> Shipped ya Delivered hone par live notification bhejta hai.</li>
+          <li><span class="text-emerald-600 dark:text-emerald-400 font-semibold">Clean Formatting:</span> Email me delivery tracking number nahi bheja jata, clean order receipt jati hai.</li>
+        </ul>
+      </div>
+
+      <div class="p-4 rounded-lg guide-card-sub border border-base-100 dark:border-base-700">
+        <h3 class="font-bold mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-sky-700 dark:text-sky-400">
+          <span class="material-symbols-outlined text-base">mark_email_read</span> Custom Email Tester & Logs
+        </h3>
+        <p class="text-xs leading-relaxed"> Email delivery check karne ke liye:
+        </p>
+        <ul class="space-y-1.5 text-xs mt-2">
+          <li><strong>Interactive Tester:</strong> <em>Email Settings</em> page par kisi bhi custom email id (jaise apna personal Gmail) daal kar <em>"Send Test Email"</em> click karein.</li>
+          <li><strong>Email Logs:</strong> <em>Marketing &gt; Email Logs</em> me har send huye email ka status (Sent / Failed) timestamp ke saath check karein.</li>
+          <li><strong>Sender:</strong> Official email <code>Mahilaudyogmagic@gmail.com</code> se emails jate hain.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: REELS, COUPONS & SETTINGS -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- Influencer Reels -->
+    <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-5 shadow-sm">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="p-1.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-400 material-symbols-outlined text-lg">smart_display</span>
+        <h3 class="font-bold text-base-900 dark:text-white text-sm">7. Influencer Video Reels</h3>
+      </div>
+      <p class="text-xs text-base-600 dark:text-base-300 leading-relaxed mb-3"> Homepage par Chef Ranveer Brar aur food influencers ke video reels chalta hai.
+      </p>
+      <ul class="text-xs text-base-600 dark:text-base-300 space-y-1.5 mb-4">
+        <li><strong>Video URL:</strong> YouTube Shorts (e.g. <code>youtube.com/shorts/...</code>) ya Instagram reel URL daalein.</li>
+        <li><strong>Creator Name:</strong> Chef ya food creator ka naam.</li>
+        <li><strong>Playsinline:</strong> Mobile par bina pause huye smoothly chalta hai.</li>
+      </ul>
+      <a href="/admin/cms/influencerreel/" class="text-xs font-semibold text-purple-700 dark:text-purple-400 hover:underline"> Manage Reels &rarr;
+      </a>
+    </div>
+
+    <!-- Coupons & Promo Codes -->
+    <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-5 shadow-sm">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="p-1.5 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-400 material-symbols-outlined text-lg">local_offer</span>
+        <h3 class="font-bold text-base-900 dark:text-white text-sm">8. Coupons & Discounts</h3>
+      </div>
+      <p class="text-xs text-base-600 dark:text-base-300 leading-relaxed mb-3"> Customers ke liye promo codes banayein (jaise MAGIC10 ya FESTIVE50).
+      </p>
+      <ul class="text-xs text-base-600 dark:text-base-300 space-y-1.5 mb-4">
+        <li><strong>Code:</strong> Code ka naam (CAPITAL letters me daalein).</li>
+        <li><strong>Discount Type:</strong> Percentage (e.g. 10%) ya Flat Amount (₹50 off).</li>
+        <li><strong>Min Cart Value:</strong> Minimum kitne rupaye ka order hona chahiye (e.g. ₹499+).</li>
+      </ul>
+      <a href="/admin/coupons/coupon/" class="text-xs font-semibold text-rose-700 dark:text-rose-400 hover:underline"> Manage Coupons &rarr;
+      </a>
+    </div>
+
+    <!-- Global Site Settings -->
+    <div class="bg-white dark:bg-base-900 border border-base-200 dark:border-base-800 rounded-xl p-5 shadow-sm">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="p-1.5 rounded bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 material-symbols-outlined text-lg">settings</span>
+        <h3 class="font-bold text-base-900 dark:text-white text-sm">9. Store Settings & Contact</h3>
+      </div>
+      <p class="text-xs text-base-600 dark:text-base-300 leading-relaxed mb-3"> Store ki basic information aur checkout calculation settings.
+      </p>
+      <ul class="text-xs text-base-600 dark:text-base-300 space-y-1.5 mb-4">
+        <li><strong>WhatsApp & Phone:</strong> Support chat button aur contact details (9410265521).</li>
+        <li><strong>Free Shipping Threshold:</strong> Kitne rupaye se upar free delivery deni hai (e.g. ₹499).</li>
+        <li><strong>Address:</strong> Kasganj, Uttar Pradesh (FSSAI 12723058000110).</li>
+      </ul>
+      <a href="/admin/core/sitesettings/1/change/" class="text-xs font-semibold text-stone-700 dark:text-stone-300 hover:underline"> Open Site Settings &rarr;
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Bottom Assistance Card -->
+  <div class="rounded-xl border border-base-200 dark:border-base-800 bg-base-50 dark:bg-base-900/50 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold shadow">
+        <span class="material-symbols-outlined">support_agent</span>
+      </div>
+      <div>
+        <h4 class="font-bold text-base-900 dark:text-white text-sm">Kisi cheez me dikkat aa rahi hai?</h4>
+        <p class="text-xs text-base-500">Live website visit karke customer view check karein ya direct settings me badlaav karein.</p>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <a href="/" target="_blank" class="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-base-900 text-white dark:bg-white dark:text-base-900 font-semibold text-xs shadow hover:opacity-90 transition">
+        <span class="material-symbols-outlined text-sm">open_in_new</span> Live Website Dekhein
+      </a>
+      <a href="/admin/" class="inline-flex items-center gap-1 px-4 py-2 rounded-lg bg-red-700 text-white font-semibold text-xs shadow hover:bg-red-800 transition">
+        <span class="material-symbols-outlined text-sm">dashboard</span> Admin Dashboard
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

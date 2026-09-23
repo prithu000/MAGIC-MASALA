@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}Contact Us — {{ site_settings.brand_name }}{% endblock %}
+{% block meta_description %}Have a question about our stone-ground spices, order tracking, or custom orders? Reach out to the {{ site_settings.brand_name }} team.{% endblock %}
+
+{% block content %}
+{# ── Hero Banner ── #}
+<div class="page-hero">
+  <div class="container">
+    <span class="page-hero__kicker">We're Here For You</span>
+    <h1 class="page-hero__title">Get in Touch</h1>
+    <p class="page-hero__subtitle"> Have questions regarding our stone-ground masalas, ongoing deliveries, or bulk orders? Drop us a line.
+    </p>
+  </div>
+</div>
+
+<div class="container" style="max-width: 1100px; padding-top: 1.5rem; padding-bottom: 4.5rem;">
+
+  {# Breadcrumb #}
+  <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+    <a href="/">Home</a> / <span class="breadcrumb-current">Contact Us</span>
+  </nav>
+
+  <div class="contact-layout">
+
+    {# Left Column: Contact Cards #}
+    <div>
+
+      {# Phone & WhatsApp #}
+      <div class="contact-card">
+        <div class="contact-card__icon" style="background: rgba(217, 119, 6, 0.12); color: var(--color-saffron);">
+          <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+        </div>
+        <h3 class="contact-card__title">Phone & WhatsApp</h3>
+        <p class="contact-card__desc">Monday to Saturday: 9:00 AM – 7:00 PM IST</p>
+        {% if site_settings.support_phone %}
+        <p class="contact-card__val">
+          <a href="tel:{{ site_settings.support_phone }}">{{ site_settings.support_phone }}</a>
+        </p>
+        {% endif %}
+        {% if site_settings.whatsapp_number %}
+        <a href="https://wa.me/{{ site_settings.whatsapp_number|cut:'+'|cut:' ' }}" target="_blank" rel="noopener" class="footer-whatsapp-btn" style="margin-top: 0.85rem;">
+          <svg style="width: 1rem; height: 1rem;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.82.49 3.53 1.34 5L2 22l5.16-1.32C8.56 21.52 10.23 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm.07 15.38c-1.37 0-2.72-.36-3.9-1.04l-.28-.17-2.9.76.77-2.82-.18-.29A7.93 7.93 0 014.07 12c0-4.37 3.56-7.93 7.93-7.93S20 7.63 20 12s-3.56 7.38-7.93 7.38zm4.32-5.79c-.24-.12-1.4-.69-1.61-.77-.22-.08-.38-.12-.54.12-.16.24-.62.77-.76.93-.14.16-.28.18-.52.06-.24-.12-1-.37-1.9-1.17-.7-.63-1.17-1.4-1.31-1.64-.14-.24-.01-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.41-.54-.41-.14 0-.3-.02-.46-.02s-.42.06-.64.3c-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.1.16 1.52.1.46-.07 1.4-.57 1.6-1.12.2-.55.2-1.02.14-1.12-.06-.1-.22-.16-.46-.28z"/></svg> Chat on WhatsApp
+        </a>
+        {% endif %}
+      </div>
+
+      {# Email #}
+      <div class="contact-card">
+        <div class="contact-card__icon" style="background: var(--color-primary-light); color: var(--color-primary);">
+          <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </div>
+        <h3 class="contact-card__title">Email Support</h3>
+        <p class="contact-card__desc">Our team typically responds within 24 hours.</p>
+        {% if site_settings.support_email %}
+        <p class="contact-card__val">
+          <a href="mailto:{{ site_settings.support_email }}">{{ site_settings.support_email }}</a>
+        </p>
+        {% else %}
+        <p class="contact-card__val"><a href="mailto:Mahilaudyogmagic@gmail.com">Mahilaudyogmagic@gmail.com</a></p>
+        {% endif %}
+      </div>
+
+      {# Spice Mill #}
+      <div class="contact-card">
+        <div class="contact-card__icon" style="background: var(--color-cream-warm); color: var(--color-dark-brown);">
+          <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <h3 class="contact-card__title">Our Spice Mill</h3>
+        {% if site_settings.address %}
+        <p style="font-size: 0.85rem; color: var(--color-brown-muted); line-height: 1.6;">{{ site_settings.address|linebreaks }}</p>
+        {% else %}
+        <p style="font-size: 0.85rem; color: var(--color-brown-muted); line-height: 1.6;">{{ site_settings.brand_name }} Spice Mill & Packaging Facility, India</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    {# Right Column: Contact Message Form #}
+    <div class="contact-form-card" x-data="{ submitted: false, submitting: false }">
+      
+      <div x-show="!submitted">
+        <h2 style="font-family: var(--font-serif); font-size: 1.75rem; font-weight: 700; color: var(--color-dark-brown); margin-bottom: 0.35rem;">Send Us a Message</h2>
+        <p style="color: var(--color-brown-muted); font-size: 0.9rem; margin-bottom: 2rem;">Fill out the form below and we will get back to you promptly.</p>
+
+        <form @submit.prevent="submitting = true; setTimeout(() => { submitting = false; submitted = true; }, 600)">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
+            <div>
+              <label class="form-label">Your Name <span style="color: var(--color-primary);">*</span></label>
+              <input type="text" required placeholder="Aarav Sharma" class="form-input">
+            </div>
+
+            <div>
+              <label class="form-label">Email Address <span style="color: var(--color-primary);">*</span></label>
+              <input type="email" required placeholder="aarav@example.com" class="form-input">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
+            <div>
+              <label class="form-label">Phone Number</label>
+              <input type="tel" placeholder="+91 94102 65521" class="form-input">
+            </div>
+
+            <div>
+              <label class="form-label">Subject <span style="color: var(--color-primary);">*</span></label>
+              <select required class="form-select">
+                <option value="">Select a topic</option>
+                <option value="order">Order Tracking & Delivery</option>
+                <option value="product">Spice Information & Shelf Life</option>
+                <option value="combo">Custom Combo Assistance</option>
+                <option value="wholesale">Bulk & Corporate Orders</option>
+                <option value="feedback">General Feedback</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Your Message <span style="color: var(--color-primary);">*</span></label>
+            <textarea required rows="5" placeholder="How can we help you today?" class="form-textarea"></textarea>
+          </div>
+
+          <div>
+            <button type="submit" :disabled="submitting" class="btn btn-primary btn-lg" style="width: 100%;">
+              <span x-show="!submitting">Send Message</span>
+              <span x-show="submitting" style="display:none;">Sending...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {# Success State #}
+      <div x-show="submitted" style="display: none; text-align: center; padding: 3rem 1rem;">
+        <div style="width: 4rem; height: 4rem; border-radius: 9999px; background: #DCFCE7; color: #15803D; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem;">
+          
+        </div>
+        <h3 style="font-family: var(--font-serif); font-size: 1.75rem; font-weight: 700; color: var(--color-dark-brown); margin-bottom: 0.5rem;">Message Received!</h3>
+        <p style="color: var(--color-brown-muted); font-size: 0.95rem; max-width: 420px; margin: 0 auto 1.5rem; line-height: 1.6;"> Thank you for reaching out to {{ site_settings.brand_name }}. Our team has received your inquiry and will respond within 24 hours.
+        </p>
+        <a href="/shop/" class="btn btn-primary">Continue Shopping</a>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

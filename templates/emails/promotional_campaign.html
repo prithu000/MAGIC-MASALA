@@ -1,0 +1,91 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}{{ campaign.subject }}{% endblock %}
+
+{% block content %}
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <!-- Highlight Badge -->
+  {% if campaign.badge_text %}
+  <tr>
+    <td align="center">
+      <span style="display: inline-block; background-color: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 12px;">
+        ✨ {{ campaign.badge_text }}
+      </span>
+    </td>
+  </tr>
+  {% endif %}
+
+  <!-- Headline -->
+  <tr>
+    <td align="center" style="padding-bottom: 14px;">
+      <h2 style="margin: 0 0 8px 0; color: #1c1917; font-size: 24px; font-weight: 800; font-family: Georgia, serif; line-height: 1.3;">
+        {{ campaign.heading }}
+      </h2>
+      {% if campaign.subheading %}
+      <p style="margin: 0; font-size: 15px; color: #78716c; line-height: 1.5;">
+        {{ campaign.subheading }}
+      </p>
+      {% endif %}
+    </td>
+  </tr>
+
+  <!-- Optional Banner Image -->
+  {% if campaign.banner_image_url %}
+  <tr>
+    <td align="center" style="padding-bottom: 20px;">
+      <img src="{{ campaign.banner_image_url }}" alt="{{ campaign.heading }}" style="width: 100%; max-width: 540px; border-radius: 12px; display: block; border: 1px solid #e7e5e4;">
+    </td>
+  </tr>
+  {% endif %}
+
+  <!-- Body Content -->
+  <tr>
+    <td style="padding: 10px 0 20px 0; font-size: 15px; color: #44403c; line-height: 1.7;">
+      {{ campaign.message_body|linebreaks }}
+    </td>
+  </tr>
+
+  <!-- Voucher Card (if coupon code present) -->
+  {% if campaign.coupon_code %}
+  <tr>
+    <td style="padding: 10px 0 20px 0;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 2px dashed #dc2626; border-radius: 12px; padding: 22px; text-align: center;">
+        <tr>
+          <td>
+            {% if campaign.discount_highlight %}
+            <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: 800; color: #991b1b; text-transform: uppercase; letter-spacing: 1.5px;">
+              {{ campaign.discount_highlight }}
+            </p>
+            {% endif %}
+            <p style="margin: 0 0 10px 0; font-size: 13px; color: #7f1d1d;">
+              Use voucher code at checkout:
+            </p>
+            <div style="display: inline-block; background-color: #ffffff; border: 2px solid #b91c1c; padding: 10px 24px; border-radius: 8px; font-size: 22px; font-weight: 800; letter-spacing: 3px; color: #991b1b; box-shadow: 0 2px 8px rgba(185, 28, 28, 0.15);">
+              {{ campaign.coupon_code }}
+            </div>
+            <p style="margin: 8px 0 0 0; font-size: 11px; color: #991b1b;">
+              Limited time offer. Apply during checkout.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  {% endif %}
+
+  <!-- Action CTA Button -->
+  <tr>
+    <td align="center" style="padding: 16px 0 10px 0;">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center" style="background-color: #991b1b; border-radius: 10px; box-shadow: 0 4px 14px rgba(153, 27, 27, 0.35);">
+            <a href="{{ cta_full_url }}" target="_blank" style="display: inline-block; padding: 15px 36px; font-size: 16px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px;">
+              {{ campaign.cta_text|default:"Shop Now" }} →
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+{% endblock %}

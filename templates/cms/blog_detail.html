@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block meta_title %}{{ meta_title }} — {{ site_settings.brand_name }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block extra_json_ld %}
+<script type="application/ld+json">{{ breadcrumb_json_ld|safe }}</script>
+{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-14">
+  {% if post.featured_image %}
+  <img src="{{ post.featured_image.url }}" alt="{{ post.featured_image_alt|default:post.title }}" class="rounded-2xl mb-8 w-full" style="max-height:420px;object-fit:cover;" loading="eager">
+  {% endif %}
+  <p class="text-xs text-stone-mid mb-3">{{ post.published_at|date:"d M Y" }}</p>
+  <h1 class="font-serif text-4xl font-bold leading-tight mb-8">{{ post.title }}</h1>
+  <div class="prose text-charcoal leading-relaxed">{{ post.content|safe }}</div>
+  <div class="mt-12 border-t border-stone-100 pt-8">
+    <a href="/blog/" class="text-masala-red font-semibold hover:underline text-sm">← Back to all recipes</a>
+  </div>
+</div>
+{% endblock %}

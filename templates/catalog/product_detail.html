@@ -1,0 +1,596 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}{{ meta_title }} — {{ site_settings.brand_name }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_image %}
+  {% if product.main_image %}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.main_image.url }}">
+  {% endif %}
+{% endblock %}
+
+{% block extra_json_ld %}
+  <script type="application/ld+json">{{ product_json_ld|safe }}</script>
+  <script type="application/ld+json">{{ breadcrumb_json_ld|safe }}</script>
+{% endblock %}
+
+{% block content %}
+{# ── Clean Data Embeds (Zero HTML attribute quoting collisions) ── #}
+<script id="pdp-variants-data" type="application/json">
+{{ variants_json|safe|default:'[]' }}
+</script>
+
+<script id="pdp-base-data" type="application/json">
+{{ base_product_data|safe|default:'{}' }}
+</script>
+
+<script>
+function pdpComponent() {
+ let rawVariants = [];
+ let rawBase = {};
+ try {
+ const vEl = document.getElementById('pdp-variants-data');
+ if (vEl && vEl.textContent) rawVariants = JSON.parse(vEl.textContent);
+ const bEl = document.getElementById('pdp-base-data');
+ if (bEl && bEl.textContent) rawBase = JSON.parse(bEl.textContent);
+  } catch(e) {
+ console.error('Error parsing PDP data', e);
+  }
+ const initialVariantId = (rawVariants.length > 0) ? String(rawVariants[0].id) : '';
+ return {
+ mainImage: '{% if product.main_image %}{{ product.main_image.url }}{% endif %}',
+ lightboxOpen: false,
+ variants: rawVariants,
+ baseProduct: rawBase,
+ selectedVariant: initialVariantId,
+ qty: 1,
+ addedFeedback: false,
+ buyNowLoading: false,
+ openAccordion: 'desc',
+ activeFaq: 1,
+ get currentVariant() {
+ if (!this.selectedVariant) return null;
+ return this.variants.find(v => String(v.id) === String(this.selectedVariant)) || null;
+    },
+ get currentPrice() {
+ if (this.currentVariant && this.currentVariant.price) {
+ return this.currentVariant.price;
+      }
+ return this.baseProduct.price || '{{ product.price }}';
+    },
+ get currentMrp() {
+ if (this.currentVariant && this.currentVariant.mrp) {
+ return this.currentVariant.mrp;
+      }
+ return this.baseProduct.mrp || '{% if product.mrp %}{{ product.mrp }}{% endif %}';
+    },
+ get currentDiscount() {
+ if (this.currentVariant && this.currentVariant.discount_percent !== undefined) {
+ return this.currentVariant.discount_percent;
+      }
+ return this.baseProduct.discount_percent || {{ product.discount_percent|default:'0' }};
+    },
+ get currentSavings() {
+ if (this.currentVariant && this.currentVariant.savings_amount) {
+ return this.currentVariant.savings_amount;
+      }
+ return this.baseProduct.savings_amount || '{{ product.savings_amount|default:"0.00" }}';
+    },
+ get isInStock() {
+ if (this.currentVariant) {
+ return this.currentVariant.is_in_stock;
+      }
+ return {{ product.is_in_stock|yesno:'true,false' }};
+    },
+ setImage(url) {
+ this.mainImage = url;
+    },
+ selectVariant(id) {
+ this.selectedVariant = String(id);
+    },
+ increment() {
+ this.qty = Math.min(this.qty + 1, 99);
+    },
+ decrement() {
+ this.qty = Math.max(this.qty - 1, 1);
+    },
+ toggleAccordion(sec) {
+ this.openAccordion = (this.openAccordion === sec) ? '' : sec;
+    },
+ toggleFaq(id) {
+ this.activeFaq = (this.activeFaq === id) ? null : id;
+    }
+  };
+}
+</script>
+
+<div class="pdp-wrapper" x-data="pdpComponent()">
+
+  {# ── Breadcrumbs ── #}
+  <nav class="pdp-breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="pdp-breadcrumb-sep">/</span>
+    <a href="/shop/">Shop</a>
+    <span class="pdp-breadcrumb-sep">/</span>
+    <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a>
+    <span class="pdp-breadcrumb-sep">/</span>
+    <span class="pdp-breadcrumb-current">{{ product.name }}</span>
+  </nav>
+
+  {# ── Main 2-Column Section (Gallery + Purchase Details) ── #}
+  <div class="pdp-main-grid">
+
+    {# ── Left: Sticky Photo Gallery ── #}
+    <div class="pdp-gallery-col">
+      <div class="pdp-main-img-box" @click="lightboxOpen = true" title="Click to view full image">
+        {# High-Quality Trust Badge (Top Left) #}
+        <div class="pdp-tag-badge-left">
+          <svg class="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Cold Stone Ground · 100% Pure</span>
+        </div>
+
+        {# Real-time Discount Pill (Top Right) #}
+        <div class="pdp-tag-badge-right" x-show="currentDiscount && currentDiscount > 0" x-cloak>
+          <span x-text="currentDiscount + '% OFF'"></span>
+        </div>
+
+        {# Main Display Image (with static src fallback) #}
+        <img src="{% if product.main_image %}{{ product.main_image.url }}{% endif %}"
+             :src="mainImage" alt="{{ product.main_image_alt|default:product.name }}" loading="eager" id="product-main-img">
+      </div>
+
+      {# Thumbnails Strip #}
+      {% if product.gallery_images.exists or product.main_image %}
+      <div class="pdp-thumb-strip">
+        {% if product.main_image %}
+        <div class="pdp-thumb-item"
+             :class="{ 'active': mainImage === '{{ product.main_image.url }}' }"
+             @click="setImage('{{ product.main_image.url }}')">
+          <img src="{{ product.main_image.url }}" alt="{{ product.name }}" loading="lazy">
+        </div>
+        {% endif %}
+
+        {% for img in product.gallery_images.all %}
+        <div class="pdp-thumb-item"
+             :class="{ 'active': mainImage === '{{ img.image.url }}' }"
+             @click="setImage('{{ img.image.url }}')">
+          <img src="{{ img.thumbnail.url|default:img.image.url }}" alt="{{ img.alt_text|default:product.name }}" loading="lazy">
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <p class="text-xs text-stone-400 mt-2 text-center hidden sm:block"> Roll over image to zoom · Click to open fullscreen
+      </p>
+    </div>
+
+    {# ── Right: Product Details & Buying Controls ── #}
+    <div>
+      {# Category label #}
+      <span class="pdp-category-tag">{{ product.category.name }}</span>
+
+      {# Product Title #}
+      <h1 class="pdp-title">{{ product.name }}</h1>
+
+      {# Ratings & Reviews Header #}
+      <div class="pdp-rating-row">
+        <div class="pdp-stars">
+          {% for i in "12345" %}
+            {% if forloop.counter <= product.average_rating|floatformat:0|default:"5"|add:"0" %}★{% else %}☆{% endif %}
+          {% endfor %}
+        </div>
+        <span class="pdp-rating-text">
+          {{ product.average_rating|floatformat:1|default:"4.9" }} ({{ product.review_count|default:"14" }} verified customer reviews)
+        </span>
+      </div>
+
+      {# ── Pricing & Discount Box (Real-Time Reactive!) ── #}
+      <div class="pdp-price-card">
+        <div class="pdp-price-row">
+          <span class="pdp-selling-price">₹<span x-text="currentPrice">{{ product.price }}</span></span>
+
+          <span class="pdp-mrp-price" x-show="currentMrp && parseFloat(currentMrp) > parseFloat(currentPrice)"
+                {% if not product.mrp or product.mrp <= product.price %}x-cloak{% endif %}> MRP: ₹<span x-text="currentMrp">{{ product.mrp|default:"" }}</span>
+          </span>
+
+          <span class="pdp-discount-pill" x-show="currentDiscount && currentDiscount > 0"
+                {% if not product.discount_percent %}x-cloak{% endif %}>
+            <span x-text="currentDiscount">{{ product.discount_percent|default:"" }}</span>% OFF
+          </span>
+        </div>
+
+        {# Savings banner #}
+        <div x-show="currentSavings && parseFloat(currentSavings) > 0"
+             {% if not product.savings_amount or product.savings_amount <= 0 %}x-cloak{% endif %}
+ class="pdp-savings-callout">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+          </svg>
+          <span>You save ₹<span x-text="currentSavings">{{ product.savings_amount|default:"0" }}</span> with this pack!</span>
+        </div>
+
+        <p class="pdp-tax-note">Inclusive of all taxes · Free shipping on orders above ₹499</p>
+      </div>
+
+      {# ── Pack Size Selector (Zoff Pill Style) ── #}
+      {% if product.variants.exists %}
+      <div class="mb-4">
+        <div class="pdp-section-label">
+          <span>Pack Size: <span class="font-extrabold text-masala-red" x-text="currentVariant ? currentVariant.size_label : '{{ product.variants.first.size_label }}'">{{ product.variants.first.size_label }}</span></span>
+        </div>
+
+        <div class="pdp-pack-group">
+          {% for variant in product.variants.all %}
+          {% if variant.is_active %}
+          <button type="button"
+                  @click="selectVariant('{{ variant.pk }}')" class="pdp-pack-pill"
+                  :class="{
+                    'active': selectedVariant == '{{ variant.pk }}',
+                    'out-of-stock': !{{ variant.is_in_stock|yesno:'true,false' }}
+                  }"
+                  {% if not variant.is_in_stock %}disabled{% endif %}>
+            {{ variant.size_label }}
+          </button>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {# ── Quantity Stepper (Zoff Pill Style) ── #}
+      <div class="pdp-qty-row">
+        <div>
+          <span class="text-xs font-bold text-stone-700 block mb-1 uppercase tracking-wider">Quantity</span>
+          <div class="pdp-qty-pill">
+            <button type="button" @click="decrement()" class="pdp-qty-btn" aria-label="Decrease quantity">–</button>
+            <input type="number" x-model="qty" min="1" max="99" class="pdp-qty-input" aria-label="Quantity">
+            <button type="button" @click="increment()" class="pdp-qty-btn" aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+
+        {# Stock availability status #}
+        <div class="pt-4">
+          <template x-if="isInStock">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+              <span>In Stock — Ready to ship</span>
+            </div>
+          </template>
+          <template x-if="!isInStock">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-red-600">
+              <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
+              <span>Currently Out of Stock</span>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      {# ── Trust Badges / USPs Icon Bar (Zoff 4-Badge Exact Match!) ── #}
+      <div class="pdp-usps-container">
+        <div class="pdp-usps-grid">
+
+          {# Badge 1: Premium Sourcing (Purple) #}
+          <div class="pdp-usp-card">
+            <div class="pdp-scallop-wrapper">
+              <svg class="pdp-scallop-svg" viewBox="0 0 100 100">
+                <g fill="#9B68D1">
+                  <circle cx="50" cy="50" r="38" />
+                  <circle cx="50" cy="14" r="14" />
+                  <circle cx="68" cy="19" r="14" />
+                  <circle cx="81" cy="32" r="14" />
+                  <circle cx="86" cy="50" r="14" />
+                  <circle cx="81" cy="68" r="14" />
+                  <circle cx="68" cy="81" r="14" />
+                  <circle cx="50" cy="86" r="14" />
+                  <circle cx="32" cy="81" r="14" />
+                  <circle cx="19" cy="68" r="14" />
+                  <circle cx="14" cy="50" r="14" />
+                  <circle cx="19" cy="32" r="14" />
+                  <circle cx="32" cy="19" r="14" />
+                </g>
+              </svg>
+              <svg class="pdp-scallop-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            </div>
+            <span class="pdp-usp-title">Premium Sourcing</span>
+            <span class="pdp-usp-desc">Direct origin farms</span>
+          </div>
+
+          {# Badge 2: Hygienic Processing (Cyan/Teal) #}
+          <div class="pdp-usp-card">
+            <div class="pdp-scallop-wrapper">
+              <svg class="pdp-scallop-svg" viewBox="0 0 100 100">
+                <g fill="#38B6CD">
+                  <circle cx="50" cy="50" r="38" />
+                  <circle cx="50" cy="14" r="14" />
+                  <circle cx="68" cy="19" r="14" />
+                  <circle cx="81" cy="32" r="14" />
+                  <circle cx="86" cy="50" r="14" />
+                  <circle cx="81" cy="68" r="14" />
+                  <circle cx="68" cy="81" r="14" />
+                  <circle cx="50" cy="86" r="14" />
+                  <circle cx="32" cy="81" r="14" />
+                  <circle cx="19" cy="68" r="14" />
+                  <circle cx="14" cy="50" r="14" />
+                  <circle cx="19" cy="32" r="14" />
+                  <circle cx="32" cy="19" r="14" />
+                </g>
+              </svg>
+              <svg class="pdp-scallop-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <span class="pdp-usp-title">Hygienic Processing</span>
+            <span class="pdp-usp-desc">Untouched by hands</span>
+          </div>
+
+          {# Badge 3: Bold Flavors / Cold Grinded (Green) #}
+          <div class="pdp-usp-card">
+            <div class="pdp-scallop-wrapper">
+              <svg class="pdp-scallop-svg" viewBox="0 0 100 100">
+                <g fill="#10A352">
+                  <circle cx="50" cy="50" r="38" />
+                  <circle cx="50" cy="14" r="14" />
+                  <circle cx="68" cy="19" r="14" />
+                  <circle cx="81" cy="32" r="14" />
+                  <circle cx="86" cy="50" r="14" />
+                  <circle cx="81" cy="68" r="14" />
+                  <circle cx="68" cy="81" r="14" />
+                  <circle cx="50" cy="86" r="14" />
+                  <circle cx="32" cy="81" r="14" />
+                  <circle cx="19" cy="68" r="14" />
+                  <circle cx="14" cy="50" r="14" />
+                  <circle cx="19" cy="32" r="14" />
+                  <circle cx="32" cy="19" r="14" />
+                </g>
+              </svg>
+              <svg class="pdp-scallop-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
+              </svg>
+            </div>
+            <span class="pdp-usp-title">Bold Flavors</span>
+            <span class="pdp-usp-desc">Cold ground aroma</span>
+          </div>
+
+          {# Badge 4: Wholesome Goodness (Golden Amber) #}
+          <div class="pdp-usp-card">
+            <div class="pdp-scallop-wrapper">
+              <svg class="pdp-scallop-svg" viewBox="0 0 100 100">
+                <g fill="#EFA00B">
+                  <circle cx="50" cy="50" r="38" />
+                  <circle cx="50" cy="14" r="14" />
+                  <circle cx="68" cy="19" r="14" />
+                  <circle cx="81" cy="32" r="14" />
+                  <circle cx="86" cy="50" r="14" />
+                  <circle cx="81" cy="68" r="14" />
+                  <circle cx="68" cy="81" r="14" />
+                  <circle cx="50" cy="86" r="14" />
+                  <circle cx="32" cy="81" r="14" />
+                  <circle cx="19" cy="68" r="14" />
+                  <circle cx="14" cy="50" r="14" />
+                  <circle cx="19" cy="32" r="14" />
+                  <circle cx="32" cy="19" r="14" />
+                </g>
+              </svg>
+              <svg class="pdp-scallop-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <span class="pdp-usp-title">Wholesome Goodness</span>
+            <span class="pdp-usp-desc">100% natural herbs</span>
+          </div>
+
+        </div>
+      </div>
+
+      {# ── Dual Action Buttons (Add to Cart + BUY NOW) ── #}
+      <div class="pdp-actions-stack">
+        {# Add to Cart Form #}
+        <form method="post" action="/cart/add/" hx-post="/cart/add/" hx-target="#cart-icon" hx-swap="outerHTML">
+          {% csrf_token %}
+          <input type="hidden" name="product_id" value="{{ product.pk }}">
+          <input type="hidden" name="variant_id" :value="selectedVariant || ''">
+          <input type="hidden" name="quantity" :value="qty">
+
+          <button type="submit" class="pdp-btn-add"
+                  :disabled="!isInStock"
+                  @click="addedFeedback = true; setTimeout(() => addedFeedback = false, 2500)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <span x-show="!addedFeedback">Add to cart</span>
+            <span x-show="addedFeedback" x-cloak> Added to Cart!</span>
+          </button>
+        </form>
+
+        {# BUY NOW Form (Immediate Direct Checkout!) #}
+        <form method="post" action="/cart/add/">
+          {% csrf_token %}
+          <input type="hidden" name="product_id" value="{{ product.pk }}">
+          <input type="hidden" name="variant_id" :value="selectedVariant || ''">
+          <input type="hidden" name="quantity" :value="qty">
+          <input type="hidden" name="buy_now" value="1">
+
+          <button type="submit" class="pdp-btn-buy"
+                  :disabled="!isInStock"
+                  @click="buyNowLoading = true">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+            </svg>
+            <span x-show="!buyNowLoading">BUY NOW</span>
+            <span x-show="buyNowLoading" x-cloak>Proceeding to Checkout...</span>
+          </button>
+        </form>
+      </div>
+
+      {# COD & Delivery Note #}
+      <div class="flex items-center gap-3 p-3.5 bg-[#FFF9F2] border border-[#F3E2D0] rounded-xl text-xs text-[#5C4A42] mb-6">
+        <svg class="w-5 h-5 text-[#E33E00] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <div>
+          <span class="font-bold text-[#2A160A]">Cash on Delivery Available</span> · 50% advance online to verify address & stop fake orders, rest 50% at delivery.
+        </div>
+      </div>
+
+      {# ── Accordion Collapsible Sections (Controllable via Admin Panel!) ── #}
+      <div class="pdp-accordions">
+
+        {# Section 1: Description #}
+        <div class="pdp-accordion-row">
+          <button type="button" @click="toggleAccordion('desc')" class="pdp-accordion-btn">
+            <div class="pdp-accordion-left">
+              <svg class="pdp-accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Description</span>
+            </div>
+            <span class="pdp-accordion-toggle" x-text="openAccordion === 'desc' ? '−' : '+'"></span>
+          </button>
+          <div class="pdp-accordion-content" x-show="openAccordion === 'desc'" x-collapse>
+            {% if product.description %}
+              {{ product.description|safe }}
+            {% else %}
+              <p>Experience the royal heritage of India's finest spices. Ground at low temperatures using traditional stone mill technology, this spice blend preserves volatile essential aromatic oils that commercial high-heat pulverizers destroy. Perfect for home cooks and gourmet chefs alike.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        {# Section 2: Ingredients (from Admin Panel product.ingredients) #}
+        <div class="pdp-accordion-row">
+          <button type="button" @click="toggleAccordion('ingr')" class="pdp-accordion-btn">
+            <div class="pdp-accordion-left">
+              <svg class="pdp-accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+              <span>Ingredients</span>
+            </div>
+            <span class="pdp-accordion-toggle" x-text="openAccordion === 'ingr' ? '−' : '+'"></span>
+          </button>
+          <div class="pdp-accordion-content" x-show="openAccordion === 'ingr'" x-collapse>
+            <p class="font-semibold text-stone-800 mb-2">100% Whole Spice Blend:</p>
+            {% if product.ingredients %}
+              <p>{{ product.ingredients }}</p>
+            {% else %}
+              <p>Hand-selected Coriander Seeds, Cumin Seeds, Black Pepper, Green Cardamom, Black Cardamom, Ceylon Cinnamon, Cloves, Mace, Bay Leaves, Star Anise, and Dried Ginger.</p>
+            {% endif %}
+            <p class="mt-2 text-xs text-stone-500 font-medium"> No preservatives ·  No MSG ·  No artificial colorants ·  Zero fillers</p>
+          </div>
+        </div>
+
+        {# Section 3: How to Use & Storage (from Admin Panel) #}
+        <div class="pdp-accordion-row">
+          <button type="button" @click="toggleAccordion('usage')" class="pdp-accordion-btn">
+            <div class="pdp-accordion-left">
+              <svg class="pdp-accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              <span>How to Use & Aroma Lock Storage</span>
+            </div>
+            <span class="pdp-accordion-toggle" x-text="openAccordion === 'usage' ? '−' : '+'"></span>
+          </button>
+          <div class="pdp-accordion-content" x-show="openAccordion === 'usage'" x-collapse>
+            <p class="mb-2"><strong>Culinary Recommendation:</strong>
+              {% if product.how_to_use %}
+                {{ product.how_to_use }}
+              {% else %}
+ Add 1/2 to 1 teaspoon near the end of cooking or during the tadka tempering to retain maximum fragrance and vibrant top notes.
+              {% endif %}
+            </p>
+            <p><strong>Storage Instructions:</strong>
+              {% if product.storage_instructions %}
+                {{ product.storage_instructions }}
+              {% else %}
+ Store in a cool, dry place away from direct sunlight. Reseal the zip-lock or airtight jar immediately after every use to lock in essential oils.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  {# ── Fullscreen Lightbox Modal ── #}
+  <div class="pdp-lightbox" x-show="lightboxOpen" x-cloak @click.self="lightboxOpen = false" @keydown.escape.window="lightboxOpen = false">
+    <button type="button" class="pdp-lightbox-close" @click="lightboxOpen = false" aria-label="Close image"></button>
+    <img :src="mainImage" class="pdp-lightbox-img" alt="{{ product.name }}">
+  </div>
+
+  {# ── FREQUENTLY ASKED QUESTIONS (Zoff Style!) ── #}
+  <section class="pdp-faq-wrapper">
+    <h2 class="pdp-faq-title">Frequently Asked Questions</h2>
+
+    <div class="pdp-faq-list">
+      {% if faqs %}
+        {% for faq in faqs %}
+        <div class="pdp-faq-item" :class="{ 'active': activeFaq === {{ forloop.counter }} }">
+          <button type="button" class="pdp-faq-header" @click="toggleFaq({{ forloop.counter }})">
+            <span>{{ faq.question }}</span>
+            <svg class="w-5 h-5 flex-shrink-0 transition-transform duration-200"
+                 :class="{ 'rotate-180': activeFaq === {{ forloop.counter }} }" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div class="pdp-faq-body" x-show="activeFaq === {{ forloop.counter }}" x-collapse>
+            {{ faq.answer|safe }}
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </section>
+
+  {# ── "ZYAADA OPTIONS, ZAYDA FUN!" Related Spices (Zoff Style!) ── #}
+  {% if related_products %}
+  <section class="pdp-related-wrapper">
+    <h2 class="pdp-related-title">ZYAADA OPTIONS, ZAYDA FUN!</h2>
+    <div class="product-grid">
+      {% for p in related_products %}
+        {% include "partials/_product_card.html" with product=p %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# Sticky mobile CTA bar with dual buttons (Inside x-data component) #}
+  {% if product.is_in_stock %}
+  <div class="sticky-cta">
+    <div class="flex-1 min-w-0 pr-2">
+      <p class="font-serif font-bold text-[#2A160A] text-sm truncate">{{ product.name }}</p>
+      <div class="flex items-baseline gap-1.5">
+        <span class="text-[#D83B01] font-black text-base">₹<span x-text="currentPrice">{{ product.price }}</span></span>
+        <span class="text-xs text-stone-400 line-through" x-show="currentMrp && parseFloat(currentMrp) > parseFloat(currentPrice)" x-cloak>
+          ₹<span x-text="currentMrp">{{ product.mrp|default:"" }}</span>
+        </span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <form method="post" action="/cart/add/" hx-post="/cart/add/" hx-target="#cart-icon" hx-swap="outerHTML">
+        {% csrf_token %}
+        <input type="hidden" name="product_id" value="{{ product.pk }}">
+        <input type="hidden" name="variant_id" :value="selectedVariant || ''">
+        <input type="hidden" name="quantity" :value="qty">
+        <button type="submit" class="btn btn-primary text-xs px-3.5 py-2.5 font-bold rounded-xl whitespace-nowrap shadow-sm">Add to Cart</button>
+      </form>
+      <form method="post" action="/cart/add/">
+        {% csrf_token %}
+        <input type="hidden" name="product_id" value="{{ product.pk }}">
+        <input type="hidden" name="variant_id" :value="selectedVariant || ''">
+        <input type="hidden" name="quantity" :value="qty">
+        <input type="hidden" name="buy_now" value="1">
+        <button type="submit" class="btn bg-[#D83B01] hover:bg-[#B32D00] text-white text-xs px-3.5 py-2.5 font-black rounded-xl whitespace-nowrap shadow-sm">BUY NOW</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

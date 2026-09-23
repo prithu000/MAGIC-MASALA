@@ -1,0 +1,72 @@
+{% extends 'admin/base.html' %}
+
+{% load i18n unfold %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+    <!-- Store Owner Welcome & Operations Bar -->
+    <div class="mb-6 rounded-2xl bg-gradient-to-r from-red-900 via-red-800 to-amber-900 text-white p-6 shadow-md relative overflow-hidden">
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm mb-2">
+                    <span class="material-symbols-outlined text-sm">verified</span> Store Management Dashboard
+                </div>
+                <h1 class="text-xl sm:text-2xl font-serif font-bold text-white mb-1"> Namaste, Admin! MU Magic Masala me aapka swagat hai.
+                </h1>
+                <p class="text-red-100 text-xs sm:text-sm max-w-2xl leading-relaxed"> Yahan se aap apne masale ke products, orders, combos aur homepage content asaani se control kar sakte hain. Agar kisi bhi feature me confusion ho to neeche diya gaya <strong>Store Owner Manual</strong> dekhein.
+                </p>
+            </div>
+            
+            <div class="flex flex-wrap gap-2.5 shrink-0">
+                <a href="/admin/guide/" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-red-900 font-bold text-xs shadow-lg hover:bg-red-50 transition transform hover:-translate-y-0.5">
+                    <span class="material-symbols-outlined text-base">menu_book</span> Open Owner Manual (गाइड)
+                </a>
+                <a href="/" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-950/70 text-white border border-white/25 font-semibold text-xs hover:bg-red-950 transition">
+                    <span class="material-symbols-outlined text-base">open_in_new</span> Live Store
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Shortcuts Row -->
+        <div class="relative z-10 mt-5 pt-4 border-t border-white/15 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs">
+            <a href="/admin/catalog/product/add/" class="p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center gap-2 text-white font-medium">
+                <span class="material-symbols-outlined text-amber-300 text-sm">add_circle</span>
+                <span>+ Add Product</span>
+            </a>
+            <a href="/admin/combos/fixedcombo/" class="p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center gap-2 text-white font-medium">
+                <span class="material-symbols-outlined text-amber-300 text-sm">inventory</span>
+                <span>Fixed Combos</span>
+            </a>
+            <a href="/admin/combos/customizecomborule/" class="p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center gap-2 text-white font-medium">
+                <span class="material-symbols-outlined text-amber-300 text-sm">tune</span>
+                <span>BYO (10 for ₹999)</span>
+            </a>
+            <a href="/admin/cms/heroslide/" class="p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center gap-2 text-white font-medium">
+                <span class="material-symbols-outlined text-amber-300 text-sm">slideshow</span>
+                <span>Hero Banners</span>
+            </a>
+            <a href="/admin/orders/order/" class="p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center gap-2 text-white font-medium">
+                <span class="material-symbols-outlined text-amber-300 text-sm">shopping_bag</span>
+                <span>Check Orders</span>
+            </a>
+            <a href="/admin/core/sitesettings/1/change/" class="p-2.5 rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center gap-2 text-white font-medium">
+                <span class="material-symbols-outlined text-amber-300 text-sm">settings</span>
+                <span>Site Settings</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Unfold App List & Activity -->
+    <div class="flex flex-col lg:flex-row lg:gap-8">
+        <div class="grow">
+            {% include "unfold/helpers/app_list_default.html" %}
+        </div>
+
+        {% include "unfold/helpers/history.html" %}
+    </div>
+{% endblock %}

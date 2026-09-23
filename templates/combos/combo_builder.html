@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta_title %}Build Your Own Combo — {{ site_settings.brand_name }}{% endblock %}
+{% block meta_description %}Pick any {{ required_count }} masalas from our collection for just ₹{{ combo_price }}. Stone-ground fresh, delivered to your door.{% endblock %}
+
+{% block content %}
+<div class="combo-builder-page" x-data="{
+ items: {},
+ maxPerItem: {{ max_units_per_product|default:2 }},
+ required: {{ required_count }},
+ price: {{ combo_price }},
+ activeCategory: 'all',
+ loading: false,
+ get totalCount() {
+ return Object.values(this.items).reduce((sum, q) => sum + q, 0);
+    },
+ get isComplete() {
+ return this.totalCount === this.required;
+    },
+ get remaining() {
+ return Math.max(0, this.required - this.totalCount);
+    },
+ getQty(id) {
+ return this.items[id] || 0;
+    },
+ canAdd(id) {
+ return this.totalCount < this.required && this.getQty(id) < this.maxPerItem;
+    },
+ canRemove(id) {
+ return this.getQty(id) > 0;
+    },
+ addItem(id) {
+ if (!this.canAdd(id)) return;
+ const current = this.getQty(id);
+ this.items[id] = current + 1;
+    },
+ removeItem(id) {
+ if (!this.canRemove(id)) return;
+ const current = this.getQty(id);
+ if (current <= 1) {
+ delete this.items[id];
+      } else {
+ this.items[id] = current - 1;
+      }
+    },
+ matchesCategory(cat) {
+ return this.activeCategory === 'all' || this.activeCategory === cat;
+    },
+ async addToCart() {
+ if (!this.isComplete || this.loading) return;
+ this.loading = true;
+ try {
+ const res = await fetch('/combos/build/save/', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+ body: JSON.stringify({ items: this.items })
+        });
+ const data = await res.json();
+ if (data.redirect) {
+ window.location.href = data.redirect;
+        } else if (data.error) {
+ alert(data.error);
+ this.loading = false;
+        }
+      } catch (e) {
+ console.error(e);
+ alert('Could not add combo to cart. Please try again.');
+ this.loading = false;
+      }
+    }
+  }">
+
+  {# ── Page Hero Slider (Admin Managed for Build Your Own Combo) ── #}
+  {% if hero_slides %}
+    {% include "partials/_hero_slider.html" %}
+    <div style="background: var(--color-cream-warm); border-bottom: 1px solid var(--color-cream-dark); padding: 0.75rem 1rem; text-align: center;">
+      <span class="combo-subrule-pill"> Maximum <strong>{{ max_units_per_product|default:2 }}</strong> of any individual spice &bull; Pick <strong>{{ required_count }}</strong> masalas for flat <strong>₹{{ combo_price }}</strong>
+      </span>
+      {% if rule.free_product %}
+      <div style="font-size: 0.85rem; font-weight: 700; color: var(--color-primary); margin-top: 0.35rem;">
+         <strong>{{ rule.free_product.name }}</strong> automatically added FREE with your custom combo!
+      </div>
+      {% endif %}
+    </div>
+  {% else %}
+  <div class="combo-builder-hero">
+    <div class="container">
+      <span class="section-kicker">Build Your Own Box</span>
+      <h1 class="combo-builder-hero__title">Pick Any {{ required_count }} Masalas</h1>
+      <p class="combo-builder-hero__subtitle"> One flat price — <strong>₹{{ combo_price }}</strong> for your custom {{ required_count }}-masala box. Stone-ground fresh, packed the same week.
+      </p>
+      <div style="margin-top: 0.65rem;">
+        <span class="combo-subrule-pill"> Maximum <strong>{{ max_units_per_product|default:2 }}</strong> of any individual spice &bull; Flat <strong>₹{{ combo_price }}</strong> for {{ required_count }} jars
+        </span>
+      </div>
+      {% if rule.free_product %}
+      <div class="combo-builder-hero__free-badge">
+         <strong>{{ rule.free_product.name }}</strong> absolutely FREE with every combo!
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Sticky Progress Bar (Desktop only, mobile uses floating bottom bar) ── #}
+  <div class="combo-sticky-bar hidden md:block">
+    <div class="container combo-sticky-bar__inner">
+      <div class="combo-sticky-bar__progress">
+        <div class="combo-progress-wrap">
+          <span class="combo-progress-count" x-text="totalCount"></span>
+          <span class="combo-progress-label">/ {{ required_count }} selected</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-bar__fill" :style="`width: ${(totalCount / required) * 100}%`"></div>
+        </div>
+      </div>
+      <div class="combo-sticky-bar__action">
+        <span class="combo-sticky-price">₹{{ combo_price }}</span>
+        <button @click="addToCart()"
+                :disabled="!isComplete || loading"
+                :class="isComplete && !loading ? 'btn-primary shadow-lg' : 'btn-disabled'" class="btn" id="combo-add-to-cart">
+          <span x-show="loading" x-cloak class="flex items-center gap-1.5">
+            <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Adding to Cart...
+          </span>
+          <span x-show="!loading && isComplete" x-cloak class="flex items-center gap-1">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 5H19M7 13H5.4M10 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/></svg> Add Combo to Cart ({{ required_count }} Masalas)
+          </span>
+          <span x-show="!loading && !isComplete" x-cloak>Select <span x-text="remaining"></span> more</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="padding-top: 1.5rem; padding-bottom: 7.5rem;">
+
+    {# ── Category Filter Tabs ── #}
+    {% if categories %}
+    <div class="combo-filter-tabs-wrapper">
+      <div class="combo-filter-tabs" role="tablist" aria-label="Filter spices by category">
+        <button class="combo-filter-tab"
+                :class="activeCategory === 'all' ? 'combo-filter-tab--active' : ''"
+                @click="activeCategory = 'all'" role="tab" id="tab-all">
+          <span>All Spices</span>
+          <span class="combo-filter-tab__count">({{ eligible_products|length }})</span>
+        </button>
+        {% for category in categories %}
+        <button class="combo-filter-tab"
+                :class="activeCategory === '{{ category.slug }}' ? 'combo-filter-tab--active' : ''"
+                @click="activeCategory = '{{ category.slug }}'" role="tab" id="tab-{{ category.slug }}">
+          <span>{{ category.name }}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Product Grid (Normal eCommerce cards with photo, price, info, quantity stepper) ── #}
+    <div class="combo-builder-grid">
+      {% for product in eligible_products %}
+      <div class="combo-builder-card" x-show="matchesCategory('{{ product.category.slug }}')"
+           :class="getQty({{ product.pk }}) > 0 ? 'combo-builder-card--selected' : ''">
+
+        {# Photo with optional tag & selected quantity pill #}
+        <div class="combo-builder-card__img-wrap">
+          {% if product.main_image %}
+            <img src="{{ product.main_image.url }}" alt="{{ product.main_image_alt|default:product.name }}" loading="lazy" class="combo-builder-card__img" onerror="this.onerror=null; this.src='/static/images/logo.png';">
+          {% else %}
+            <div class="combo-builder-card__img-placeholder">
+              <svg class="w-10 h-10 text-amber-700 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+          {% endif %}
+
+          {% if product.is_bestseller %}
+            <span class="combo-builder-card__badge">Bestseller</span>
+          {% endif %}
+
+          {# Quantity Pill on Top-Right #}
+          <div class="combo-builder-card__qty-pill" x-show="getQty({{ product.pk }}) > 0" x-cloak>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+            <span x-text="`${getQty({{ product.pk }})} in box`"></span>
+          </div>
+        </div>
+
+        {# Card Body with Category, Name, Info, Price #}
+        <div class="combo-builder-card__body">
+          <span class="combo-builder-card__cat">{{ product.category.name }}</span>
+          <h3 class="combo-builder-card__name">{{ product.name }}</h3>
+
+          <p class="combo-builder-card__info">
+            {{ product.short_description|default:product.features|default:"Stone-ground authentic spice blend. 100% natural, no preservatives."|truncatewords:10 }}
+          </p>
+
+          <div class="combo-builder-card__meta-row">
+            <div class="combo-builder-card__pricing">
+              <span class="combo-builder-card__price">₹{{ product.price|floatformat:0 }}</span>
+              {% if product.mrp and product.mrp > product.price %}
+                <span class="combo-builder-card__mrp">₹{{ product.mrp|floatformat:0 }}</span>
+              {% endif %}
+            </div>
+            {% if product.variants.first.size_label %}
+              <span class="combo-builder-card__weight">{{ product.variants.first.size_label }}</span>
+            {% elif product.weight %}
+              <span class="combo-builder-card__weight">{{ product.weight }}</span>
+            {% endif %}
+          </div>
+
+          {# Add / Stepper Action #}
+          <div class="combo-builder-card__action">
+            {# State 1: Not added yet #}
+            <template x-if="getQty({{ product.pk }}) === 0">
+              <button type="button" class="combo-builder-card__btn"
+                      @click.stop="addItem({{ product.pk }})"
+                      :disabled="totalCount >= required">
+                <span x-show="totalCount < required" x-cloak>
+                  + Add to Box
+                </span>
+                <span x-show="totalCount >= required" x-cloak> Box Full ({{ required_count }}/{{ required_count }})
+                </span>
+              </button>
+            </template>
+
+            {# State 2: Added - Stepper Controls #}
+            <template x-if="getQty({{ product.pk }}) > 0">
+              <div class="combo-card-stepper" @click.stop>
+                <button type="button" class="combo-stepper-btn"
+                        @click.stop="removeItem({{ product.pk }})" title="Remove one unit">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                </button>
+                <div class="combo-stepper-value">
+                  <span class="combo-stepper-count" x-text="`${getQty({{ product.pk }})}`"></span>
+                  <span class="combo-stepper-label" x-text="getQty({{ product.pk }}) >= maxPerItem ? `(Max ${maxPerItem})` : 'in box'"></span>
+                </div>
+                <button type="button" class="combo-stepper-btn"
+                        @click.stop="addItem({{ product.pk }})"
+                        :disabled="!canAdd({{ product.pk }})"
+                        :title="getQty({{ product.pk }}) >= maxPerItem ? `Maximum ${maxPerItem} per spice` : 'Add another unit'">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                </button>
+              </div>
+            </template>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>{# /container #}
+
+  {# ── Mobile sticky CTA ── #}
+  <div class="sticky-cta">
+    <div>
+      <p class="sticky-cta__count" x-text="`${totalCount} / {{ required_count }} selected`"></p>
+      <p class="sticky-cta__price">₹{{ combo_price }}</p>
+    </div>
+    <button @click="addToCart()"
+            :disabled="!isComplete || loading" class="btn"
+            :class="isComplete && !loading ? 'btn-primary' : 'btn-disabled'" id="mobile-combo-add-to-cart">
+      <span x-show="loading" x-cloak>Adding to Cart...</span>
+      <span x-show="!loading && isComplete" x-cloak>Add Combo to Cart</span>
+      <span x-show="!loading && !isComplete" x-cloak>Select <span x-text="remaining"></span> more</span>
+    </button>
+  </div>
+
+</div>
+{% endblock %}

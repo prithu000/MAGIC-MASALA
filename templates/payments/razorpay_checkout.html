@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}Payment — {{ site_settings.brand_name }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-12">
+  <h1 class="font-serif text-2xl font-bold mb-8 text-center">Complete Payment</h1>
+
+  <div class="bg-white rounded-2xl shadow-sm p-8">
+
+    {# Order summary #}
+    <div class="border-b border-stone-100 pb-6 mb-6">
+      <h2 class="font-semibold mb-4">Order: {{ order.order_number }}</h2>
+      <div class="space-y-2 text-sm">
+        {% for item in order.items.all %}
+        <div class="flex justify-between text-stone-mid">
+          <span>{{ item.item_name }} × {{ item.quantity }}</span>
+          <span>₹{{ item.line_total }}</span>
+        </div>
+        {% endfor %}
+        <div class="h-px bg-stone-100 my-3"></div>
+        {% if order.discount_amount > 0 %}
+        <div class="flex justify-between text-green-700 font-medium">
+          <span>Discount ({{ order.coupon_code }})</span>
+          <span>–₹{{ order.discount_amount }}</span>
+        </div>
+        {% endif %}
+        {% if order.cod_charge_applied > 0 %}
+        <div class="flex justify-between text-stone-mid">
+          <span>COD Charge</span>
+          <span>₹{{ order.cod_charge_applied }}</span>
+        </div>
+        {% endif %}
+        <div class="flex justify-between font-bold text-base pt-2 border-t border-stone-100">
+          <span>Order Total</span>
+          <span class="text-masala-red">₹{{ order.total }}</span>
+        </div>
+      </div>
+    </div>
+
+    {# COD advance breakdown #}
+    {% if order.payment_method == "cod" %}
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+      <h3 class="font-semibold text-amber-900 mb-2">Cash on Delivery — Payment Breakdown</h3>
+      <div class="text-sm space-y-1">
+        <div class="flex justify-between">
+          <span class="text-amber-800">Pay now ({{ site_settings.cod_advance_percent|floatformat:0 }}% advance)</span>
+          <span class="font-bold text-amber-900">₹{{ order.advance_amount }}</span>
+        </div>
+        <div class="flex justify-between text-amber-700">
+          <span>Pay at delivery (incl. COD charge ₹{{ order.cod_charge_applied }})</span>
+          <span>₹{{ order.remaining_amount }}</span>
+        </div>
+      </div>
+      <p class="text-xs text-amber-700 mt-2"> You are now paying the advance. The remaining amount is collected when your order arrives.
+      </p>
+    </div>
+    {% endif %}
+
+    {# Pay button — triggers Razorpay modal #}
+    <button id="razorpay-pay-btn" class="btn btn-primary btn-full text-lg" onclick="openRazorpay()"> Pay ₹{{ amount_display }} — Secure Checkout
+    </button>
+    <p class="text-xs text-center text-stone-400 mt-3"> Secured by Razorpay · UPI, Cards, Netbanking, Wallets accepted
+    </p>
+  </div>
+</div>
+
+<script>
+function openRazorpay() {
+ var options = {
+ key: "{{ razorpay_key_id }}",
+ amount: {{ amount_paise }},
+ currency: "INR",
+ order_id: "{{ razorpay_order_id }}",
+ name: "{{ site_settings.brand_name }}",
+ description: "Order {{ order.order_number }}",
+ prefill: {
+ name: "{{ order.shipping_full_name }}",
+ contact: "{{ order.shipping_phone }}",
+ email: "{{ request.user.email|default:'' }}"
+    },
+ theme: { color: "#7C1E1E" },
+ handler: function(response) {
+      // Client-side: Razorpay signals success.
+      // The actual payment verification and order marking happens via WEBHOOK on the server.
+      // This redirect is display-only — no payment logic runs at /checkout/confirm/.
+ window.location.href = "/checkout/confirm/{{ order.order_number }}/";
+    },
+ modal: {
+ ondismiss: function() {
+ document.getElementById("razorpay-pay-btn").disabled = false;
+      }
+    }
+  };
+ document.getElementById("razorpay-pay-btn").disabled = true;
+ var rzp = new Razorpay(options);
+ rzp.open();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% if hero_slides %}
+<section class="hero-slider" aria-label="Featured promotions" x-data="{
+ current: 0,
+ slides: {{ hero_slides.count }},
+ autoplay: null,
+ init() { this.autoplay = setInterval(() => { this.next(); }, 5500); },
+ next() { this.current = (this.current + 1) % this.slides; },
+ prev() { this.current = (this.current - 1 + this.slides) % this.slides; },
+ goTo(i) { this.current = i; clearInterval(this.autoplay); this.init(); }
+  }">
+
+  {% for slide in hero_slides %}
+  <div class="hero-slide" x-show="current === {{ forloop.counter0 }}" x-transition:enter="transition-all duration-700" style="{% if not forloop.first %}display:none{% endif %}">
+    <a href="{{ slide.cta_link|default:'/shop/' }}" class="hero-slide__link-wrap block w-full h-full" aria-label="{{ slide.title|default:'Magic Masala Banner' }}">
+      <picture class="hero-slide__picture">
+        {% if slide.mobile_image %}
+          <source media="(max-width: 767px)" srcset="{{ slide.mobile_image.url }}">
+        {% endif %}
+        <img class="hero-slide__img" src="{{ slide.desktop_image.url }}" alt="{{ slide.title|default:'Magic Masala Banner' }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+      </picture>
+    </a>
+  </div>
+  {% endfor %}
+
+  {% if hero_slides.count > 1 %}
+  <button @click="prev()" class="hero-arrow hero-arrow--left" aria-label="Previous slide">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  </button>
+  <button @click="next()" class="hero-arrow hero-arrow--right" aria-label="Next slide">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+  </button>
+  <div class="hero-dots">
+    {% for slide in hero_slides %}
+    <button @click="goTo({{ forloop.counter0 }})"
+      :class="current === {{ forloop.counter0 }} ? 'hero-dot hero-dot--active' : 'hero-dot'" aria-label="Go to slide {{ forloop.counter }}"></button>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}

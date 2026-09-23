@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}Order #{{ order.order_number }} — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10">
+
+  <div class="flex flex-col lg:flex-row gap-8">
+    
+    {% include "accounts/_nav.html" %}
+
+    <main class="flex-1 space-y-6">
+      
+      {# Header #}
+      <div class="bg-white rounded-2xl border border-stone-100 p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-100">
+          <div>
+            <div class="flex items-center gap-3">
+              <h1 class="font-serif text-2xl font-bold text-stone-900">Order #{{ order.order_number }}</h1>
+              <span class="px-3 py-1 rounded-full text-xs font-bold
+                {% if order.order_status == 'delivered' %}bg-green-100 text-green-800
+                {% elif order.order_status == 'cancelled' %}bg-red-100 text-red-800
+                {% else %}bg-amber-100 text-amber-800{% endif %}">
+                {{ order.get_order_status_display }}
+              </span>
+            </div>
+            <p class="text-xs text-stone-400 mt-1">Placed on {{ order.created_at|date:"F j, Y • g:i A" }}</p>
+          </div>
+          <a href="{% url 'accounts:order_list' %}" class="btn btn-secondary btn-sm self-start sm:self-auto text-xs">
+            ← Back to All Orders
+          </a>
+        </div>
+
+        {# Visual Stepper Tracker #}
+        {% if order.order_status != 'cancelled' and order.order_status != 'returned' %}
+        <div class="py-6 border-b border-stone-100">
+          <div class="max-w-2xl mx-auto px-2">
+            <div class="relative flex items-center justify-between">
+              {# Base Line #}
+              <div class="absolute left-6 right-6 top-4 -translate-y-1/2 h-1 bg-stone-200 z-0 rounded-full"></div>
+              {# Progress Line #}
+              <div class="absolute left-6 top-4 -translate-y-1/2 h-1 bg-green-500 z-0 rounded-full transition-all duration-500
+                {% if order.order_status == 'placed' %}w-[5%]
+                {% elif order.order_status == 'confirmed' %}w-[28%]
+                {% elif order.order_status == 'packed' %}w-[53%]
+                {% elif order.order_status == 'shipped' %}w-[75%]
+                {% elif order.order_status == 'delivered' %}w-[94%]{% endif %}"></div>
+
+              {# Steps #}
+              {# 1. Placed #}
+              <div class="relative z-10 flex flex-col items-center">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-green-600 text-white shadow-xs"></div>
+                <span class="text-[11px] font-semibold mt-2 text-stone-800">Placed</span>
+              </div>
+
+              {# 2. Confirmed #}
+              <div class="relative z-10 flex flex-col items-center">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                  {% if order.order_status in 'confirmed packed shipped delivered' %}bg-green-600 text-white shadow-xs
+                  {% else %}bg-stone-100 text-stone-400 border border-stone-300{% endif %}">
+                  {% if order.order_status in 'confirmed packed shipped delivered' %}{% else %}2{% endif %}
+                </div>
+                <span class="text-[11px] font-semibold mt-2 {% if order.order_status in 'confirmed packed shipped delivered' %}text-stone-800{% else %}text-stone-400{% endif %}">Confirmed</span>
+              </div>
+
+              {# 3. Packed #}
+              <div class="relative z-10 flex flex-col items-center">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                  {% if order.order_status in 'packed shipped delivered' %}bg-green-600 text-white shadow-xs
+                  {% elif order.order_status == 'confirmed' %}bg-amber-500 text-white ring-4 ring-amber-100 animate-pulse
+                  {% else %}bg-stone-100 text-stone-400 border border-stone-300{% endif %}">
+                  {% if order.order_status in 'packed shipped delivered' %}{% else %}3{% endif %}
+                </div>
+                <span class="text-[11px] font-semibold mt-2 {% if order.order_status in 'packed shipped delivered' %}text-stone-800{% else %}text-stone-400{% endif %}">Packed</span>
+              </div>
+
+              {# 4. Shipped #}
+              <div class="relative z-10 flex flex-col items-center">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                  {% if order.order_status == 'delivered' %}bg-green-600 text-white shadow-xs
+                  {% elif order.order_status == 'shipped' %}bg-amber-500 text-white ring-4 ring-amber-100 shadow-sm
+                  {% else %}bg-stone-100 text-stone-400 border border-stone-300{% endif %}">
+                  {% if order.order_status == 'delivered' %}{% elif order.order_status == 'shipped' %}{% else %}4{% endif %}
+                </div>
+                <span class="text-[11px] font-bold mt-2 {% if order.order_status in 'shipped delivered' %}text-stone-900{% else %}text-stone-400{% endif %}">Shipped</span>
+              </div>
+
+              {# 5. Delivered #}
+              <div class="relative z-10 flex flex-col items-center">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                  {% if order.order_status == 'delivered' %}bg-green-600 text-white shadow-xs
+                  {% else %}bg-stone-100 text-stone-400 border border-stone-300{% endif %}">
+                  {% if order.order_status == 'delivered' %}{% else %}5{% endif %}
+                </div>
+                <span class="text-[11px] font-semibold mt-2 {% if order.order_status == 'delivered' %}text-green-700 font-bold{% else %}text-stone-400{% endif %}">Delivered</span>
+              </div>
+            </div>
+          </div>
+
+          {# Courier Details Pill #}
+          {% if order.courier_name or order.tracking_number %}
+          <div class="mt-5 p-3.5 bg-amber-50/90 border border-amber-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="text-base"></span>
+              <span class="text-stone-600">Dispatched with:</span>
+              <strong class="text-stone-900">{{ order.courier_name|default:"Standard Express Delivery" }}</strong>
+            </div>
+            {% if order.tracking_number %}
+            <div class="flex items-center gap-2">
+              <span class="text-stone-600">Tracking AWB:</span>
+              <code class="bg-white px-2.5 py-1 rounded border border-amber-300 font-mono font-bold text-stone-900">{{ order.tracking_number }}</code>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+        {% else %}
+        <div class="py-4 px-5 bg-red-50 border border-red-200 rounded-xl my-4 text-xs text-red-800 font-medium"> Order Status: <strong>{{ order.get_order_status_display }}</strong>
+        </div>
+        {% endif %}
+
+        {# Status Updates Timeline #}
+        <div class="py-6 border-b border-stone-100">
+          <h2 class="font-semibold text-xs uppercase tracking-wider text-stone-400 mb-4">Status Updates Timeline</h2>
+          {% if order.status_history.all %}
+          <div class="space-y-4">
+            {% for event in order.status_history.all %}
+            <div class="flex items-start gap-3">
+              <span class="w-3.5 h-3.5 rounded-full {% if forloop.last %}bg-green-500 ring-4 ring-green-100{% else %}bg-stone-400{% endif %} mt-1 flex-shrink-0"></span>
+              <div>
+                <div class="text-xs font-bold {% if forloop.last %}text-green-800 text-sm{% else %}text-stone-800{% endif %}">
+                  {{ event.get_status_display }}
+                  {% if forloop.last %}<span class="ml-2 text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">Current Status</span>{% endif %}
+                </div>
+                {% if event.note %}<p class="text-xs text-stone-600 mt-0.5">{{ event.note }}</p>{% endif %}
+                <span class="text-[10px] text-stone-400">{{ event.timestamp|date:"M d, Y • h:i A" }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-xs text-stone-500">Your order has been placed and is being processed.</p>
+          {% endif %}
+        </div>
+
+        {# Items Table #}
+        <div class="py-6">
+          <h2 class="font-serif text-lg font-bold text-stone-900 mb-4">Items in this Order</h2>
+          <div class="divide-y divide-stone-100">
+            {% for item in order.items.all %}
+            <div class="py-3.5 flex items-center justify-between gap-4">
+              <div>
+                <div class="font-semibold text-stone-900 text-sm">
+                  {{ item.item_name|default:item.product.name }}
+                </div>
+                {% if item.variant %}
+                <div class="text-xs text-stone-400">{{ item.variant.name }}</div>
+                {% endif %}
+                <div class="text-xs text-stone-500 mt-0.5">Qty: {{ item.quantity }} × ₹{{ item.price_at_purchase|floatformat:0 }}</div>
+              </div>
+              <div class="font-bold text-sm text-stone-900">
+                ₹{{ item.line_total|floatformat:0 }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Summary & Shipping details #}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-stone-100">
+          
+          {# Delivery Address #}
+          <div class="bg-stone-50 rounded-2xl p-5 border border-stone-200/50">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">Shipping Details</h3>
+            <p class="font-bold text-sm text-stone-800">{{ order.shipping_full_name }}</p>
+            <p class="text-xs text-stone-600 mt-1 leading-relaxed">
+              {{ order.shipping_address_line1 }}<br>
+              {% if order.shipping_address_line2 %}{{ order.shipping_address_line2 }}<br>{% endif %}
+              {% if order.shipping_landmark %}Landmark: {{ order.shipping_landmark }}<br>{% endif %}
+              {{ order.shipping_city }}, {{ order.shipping_state }} — {{ order.shipping_pincode }}
+            </p>
+            <p class="text-xs text-stone-600 mt-2"><strong>Phone:</strong> {{ order.shipping_phone }}</p>
+          </div>
+
+          {# Financial Breakdown #}
+          <div class="bg-cream-warm/70 rounded-2xl p-5 border border-stone-200/50 space-y-2 text-sm">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-3">Payment Summary</h3>
+            <div class="flex justify-between text-xs text-stone-600">
+              <span>Subtotal:</span>
+              <span>₹{{ order.subtotal|floatformat:0 }}</span>
+            </div>
+            {% if order.discount_amount > 0 %}
+            <div class="flex justify-between text-xs text-green-700">
+              <span>Discount ({% if order.coupon_code %}{{ order.coupon_code }}{% endif %}):</span>
+              <span>−₹{{ order.discount_amount|floatformat:0 }}</span>
+            </div>
+            {% endif %}
+            <div class="flex justify-between text-xs text-stone-600">
+              <span>Shipping:</span>
+              <span>{% if order.shipping_charge > 0 %}₹{{ order.shipping_charge|floatformat:0 }}{% else %}FREE{% endif %}</span>
+            </div>
+            {% if order.cod_charge_applied > 0 %}
+            <div class="flex justify-between text-xs text-stone-600">
+              <span>COD Handling:</span>
+              <span>₹{{ order.cod_charge_applied|floatformat:0 }}</span>
+            </div>
+            {% endif %}
+            <div class="pt-2 border-t border-stone-200 flex justify-between font-bold text-base text-stone-900">
+              <span>Total Paid:</span>
+              <span class="text-masala-red">₹{{ order.total|floatformat:0 }}</span>
+            </div>
+            <div class="pt-2 text-[11px] text-stone-400"> Method: {{ order.get_payment_method_display }} ({{ order.get_payment_status_display }})
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+{% endblock %}

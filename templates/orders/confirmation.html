@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta_title %}Order Confirmed — {{ site_settings.brand_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-16 text-center">
+
+  {# Success icon #}
+  <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+    <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+  </div>
+
+  <h1 class="font-serif text-3xl font-bold mb-2">Thank you!</h1>
+  <p class="text-stone-mid mb-1">Your order has been placed.</p>
+  <p class="font-mono font-bold text-masala-red text-lg mb-8">{{ order.order_number }}</p>
+
+  {# Order summary #}
+  <div class="bg-white rounded-2xl shadow-sm p-6 text-left mb-6">
+    <h2 class="font-semibold mb-4">Order Details</h2>
+    <div class="space-y-2 text-sm mb-4">
+      {% for item in order.items.all %}
+      <div class="flex justify-between">
+        <span class="text-stone-mid">{{ item.item_name }} × {{ item.quantity }}</span>
+        <span>₹{{ item.line_total }}</span>
+      </div>
+      {% endfor %}
+      <div class="border-t border-stone-100 pt-3 mt-3 space-y-1.5 text-xs text-stone-600">
+        <div class="flex justify-between"><span>Subtotal</span><span>₹{{ order.subtotal }}</span></div>
+        {% if order.discount_amount > 0 %}
+        <div class="flex justify-between text-green-700 font-medium"><span>Coupon Discount ({{ order.coupon_code }})</span><span>–₹{{ order.discount_amount }}</span></div>
+        {% endif %}
+        <div class="flex justify-between"><span>GST (5%)</span><span>₹{{ order.tax_amount }}</span></div>
+        <div class="flex justify-between"><span>Shipping</span><span>{% if order.shipping_charge > 0 %}₹{{ order.shipping_charge }}{% else %}FREE{% endif %}</span></div>
+        {% if order.cod_charge_applied > 0 %}
+        <div class="flex justify-between"><span>COD Handling Fee</span><span>₹{{ order.cod_charge_applied }}</span></div>
+        {% endif %}
+      </div>
+      <div class="border-t border-stone-200 pt-3 mt-2 font-bold flex justify-between text-base">
+        <span>Total</span>
+        <span class="text-masala-red">₹{{ order.total }}</span>
+      </div>
+    </div>
+
+    {# Payment Breakdown: Prepaid vs COD #}
+    {% if order.payment_method == "cod" %}
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-4 text-sm">
+      <div class="flex items-center justify-between mb-1">
+        <span class="font-semibold text-amber-900">Cash on Delivery (COD)</span>
+        <span class="text-xs bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded-full">10% Advance Paid</span>
+      </div>
+      <p class="text-amber-800 text-xs">Advance paid online: <strong>₹{{ order.advance_amount }}</strong></p>
+      <p class="text-amber-800 text-xs">Remaining payable at delivery: <strong>₹{{ order.remaining_amount }}</strong></p>
+    </div>
+    {% else %}
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mt-4 text-sm">
+      <div class="flex items-center justify-between mb-1">
+        <span class="font-semibold text-emerald-900">Online Payment (Prepaid)</span>
+        <span class="text-xs bg-emerald-200 text-emerald-900 font-bold px-2 py-0.5 rounded-full">Fully Paid</span>
+      </div>
+      <p class="text-emerald-800 text-xs">Amount paid online: <strong>₹{{ order.total }}</strong></p>
+      <p class="text-emerald-800 text-xs">Amount due at delivery: <strong>₹0.00 (Nil)</strong></p>
+    </div>
+    {% endif %}
+
+    <div class="mt-3 pt-3 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500">
+      <span>FSSAI Lic. No. <strong>12723058000110</strong></span>
+      <span>Kasganj, Uttar Pradesh</span>
+    </div>
+
+    {# Status timeline #}
+    <h3 class="font-semibold mt-6 mb-3">Order Status</h3>
+    <div class="timeline">
+      {% for history in order.status_history.all %}
+      <div class="timeline__item">
+        <div class="timeline__dot {% if forloop.last %}timeline__dot--active{% endif %}"></div>
+        <p class="timeline__label">{{ history.get_status_display }}</p>
+        <p class="timeline__time">{{ history.timestamp|date:"d M Y, g:i A" }}</p>
+        {% if history.note %}<p class="timeline__note">{{ history.note }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# Shipping address #}
+  <div class="bg-white rounded-2xl shadow-sm p-6 text-left mb-8">
+    <h2 class="font-semibold mb-3">Shipping To</h2>
+    <address class="not-italic text-sm text-stone-mid leading-relaxed">
+      {{ order.shipping_full_name }}<br>
+      {{ order.shipping_address_line1 }}{% if order.shipping_address_line2 %}, {{ order.shipping_address_line2 }}{% endif %}<br>
+      {% if order.shipping_landmark %}{{ order.shipping_landmark }},<br>{% endif %}
+      {{ order.shipping_city }}, {{ order.shipping_state }} — {{ order.shipping_pincode }}<br>
+      {{ order.shipping_phone }}
+    </address>
+  </div>
+
+  <div class="flex gap-4 justify-center">
+    {% if user.is_authenticated %}
+      <a href="/account/orders/{{ order.order_number }}/" class="btn btn-secondary">Track Order</a>
+    {% endif %}
+    <a href="/shop/" class="btn btn-primary">Continue Shopping</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block meta_title %}Create an Account — {{ site_settings.brand_name }}{% endblock %}
+{% block meta_description %}Join MU Magic Masala to track orders, save shipping addresses, and enjoy faster checkout.{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16">
+
+  <div class="bg-white rounded-3xl p-8 md:p-10 border border-stone-100 shadow-xl">
+    
+    <div class="text-center mb-8">
+      <span class="text-xs font-bold uppercase tracking-wider text-masala-red bg-red-50 px-3 py-1 rounded-full">New Customer</span>
+      <h1 class="font-serif text-3xl font-bold text-stone-900 mt-3 mb-2">Create Account</h1>
+      <p class="text-stone-500 text-sm">Sign up for faster checkout and easy order tracking</p>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-3.5 space-y-1">
+      {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {# Google Sign Up — always-visible redirect button for reliability #}
+    {% if google_client_id %}
+    <div class="mb-6">
+      <div id="google-oauth-btn">
+        <a href="{% url 'accounts:google_login' %}?next={{ next|default:'/account/'|urlencode }}"
+           class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-stone-200 rounded-xl bg-white hover:bg-stone-50 text-stone-700 font-semibold text-sm shadow-sm hover:shadow transition-all duration-200">
+          <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Sign up with Google</span>
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    {# Divider #}
+    <div class="relative flex items-center justify-center mb-6">
+      <div class="border-t border-stone-200 w-full"></div>
+      <div class="bg-white px-3 text-xs uppercase tracking-wider font-semibold text-stone-400 absolute">or sign up with email</div>
+    </div>
+
+    <form method="post" action="{% url 'accounts:register' %}" class="space-y-4">
+      {% csrf_token %}
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">First Name <span class="text-masala-red">*</span></label>
+          <input type="text" name="first_name" required value="{{ form.first_name.value|default:'' }}" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+          {% if form.first_name.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ form.first_name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Last Name <span class="text-masala-red">*</span></label>
+          <input type="text" name="last_name" required value="{{ form.last_name.value|default:'' }}" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+          {% if form.last_name.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ form.last_name.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Email Address <span class="text-masala-red">*</span></label>
+        <input type="email" name="email" required value="{{ form.email.value|default:'' }}" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+        {% if form.email.errors %}
+          <p class="text-xs text-red-600 mt-1">{{ form.email.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Phone Number (Optional)</label>
+        <input type="tel" name="phone" value="{{ form.phone.value|default:'' }}" placeholder="+91 94102 65521" class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+        {% if form.phone.errors %}
+          <p class="text-xs text-red-600 mt-1">{{ form.phone.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Password <span class="text-masala-red">*</span></label>
+        <input type="password" name="password1" required
+ class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+        {% if form.password1.errors %}
+          <p class="text-xs text-red-600 mt-1">{{ form.password1.errors.0 }}</p>
+        {% endif %}
+        <p class="text-[11px] text-stone-400 mt-1">At least 8 characters with letters &amp; numbers.</p>
+      </div>
+
+      <div>
+        <label class="form-label text-xs uppercase tracking-wide font-semibold text-stone-700 mb-1 block">Confirm Password <span class="text-masala-red">*</span></label>
+        <input type="password" name="password2" required
+ class="form-input w-full rounded-xl text-sm border-stone-300 focus:border-masala-red focus:ring-masala-red">
+        {% if form.password2.errors %}
+          <p class="text-xs text-red-600 mt-1">{{ form.password2.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="pt-4">
+        <button type="submit" class="btn btn-primary w-full py-3.5 rounded-xl font-semibold shadow-md hover:shadow-lg">Create My Account
+        </button>
+      </div>
+    </form>
+
+    <div class="mt-6 text-center text-sm text-stone-600 border-t border-stone-100 pt-5">Already have an account?
+      <a href="{% url 'accounts:login' %}" class="text-masala-red font-semibold hover:underline">Sign in here</a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

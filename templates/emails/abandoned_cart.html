@@ -1,0 +1,68 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}You Left Something Delicious Behind! 🌶️ | MU Magic Masala{% endblock %}
+
+{% block content %}
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="center" style="padding-bottom: 20px;">
+      <span style="display: inline-block; background-color: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 12px;">
+        🛒 Cart Reminder
+      </span>
+      <h2 style="margin: 0 0 10px 0; color: #1c1917; font-size: 22px; font-weight: 800; font-family: Georgia, serif;">
+        Your Spices Are Waiting For You!
+      </h2>
+      <p style="margin: 0; font-size: 14px; color: #57534e; line-height: 1.6;">
+        Hello {{ user.get_full_name|default:user.username }}, you recently added items to your cart at MU Magic Masala. We have reserved them for you so you don't miss out on fresh stone-ground goodness.
+      </p>
+    </td>
+  </tr>
+
+  <!-- Cart Items List -->
+  {% if items %}
+  <tr>
+    <td style="padding: 10px 0 20px 0;">
+      <table border="0" cellpadding="8" cellspacing="0" width="100%" style="border-collapse: collapse; font-size: 13px; border-bottom: 2px solid #e7e5e4;">
+        <thead>
+          <tr style="background-color: #f5f5f4; color: #44403c; text-align: left; font-size: 12px; text-transform: uppercase;">
+            <th style="padding: 8px 10px;">Item</th>
+            <th style="padding: 8px 10px; text-align: center;">Qty</th>
+            <th style="padding: 8px 10px; text-align: right;">Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr style="border-bottom: 1px solid #f5f5f4;">
+            <td style="padding: 10px; color: #1c1917; font-weight: 600;">
+              {{ item.product.name|default:"Handcrafted Combo Box" }}
+            </td>
+            <td style="padding: 10px; text-align: center; color: #57534e;">
+              {{ item.quantity }}
+            </td>
+            <td style="padding: 10px; text-align: right; color: #991b1b; font-weight: 700;">
+              ₹{{ item.line_total }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </td>
+  </tr>
+  {% endif %}
+
+  <!-- Action Button -->
+  <tr>
+    <td align="center" style="padding: 18px 0 10px 0;">
+      <table border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center" style="background-color: #991b1b; border-radius: 10px; box-shadow: 0 4px 14px rgba(153, 27, 27, 0.35);">
+            <a href="{{ site_url|default:'https://mumagicmasala.com' }}/cart/" target="_blank" style="display: inline-block; padding: 15px 36px; font-size: 16px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px;">
+              Complete My Order Now →
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+{% endblock %}

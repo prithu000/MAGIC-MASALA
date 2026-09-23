@@ -1,0 +1,64 @@
+{% load static %}
+<div class="product-card card group" id="product-card-{{ product.pk }}">
+  <a href="{{ product.get_absolute_url }}" class="product-card__image-wrap block">
+    {% if product.is_bestseller %}
+      <span class="product-card__badge product-card__badge--bestseller">#1 Bestseller</span>
+    {% elif product.discount_percent %}
+      <span class="product-card__badge product-card__badge--discount">{{ product.discount_percent }}% OFF</span>
+    {% endif %}
+
+    {% if product.main_image %}
+      <img src="{{ product.main_image.url }}" alt="{{ product.main_image_alt|default:product.name }}" loading="lazy" class="product-card__img">
+    {% else %}
+      <div class="product-card__placeholder">
+        <svg class="w-12 h-12 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      </div>
+    {% endif %}
+    <div class="product-card__img-overlay"></div>
+  </a>
+
+  <div class="product-card__body">
+    <div class="product-card__meta">
+      <div class="product-card__rating">
+        <span class="stars" aria-hidden="true">★★★★★</span>
+        <span class="rating-val">{{ product.average_rating|default:"4.9"|floatformat:1 }}</span>
+        <span class="rating-count">({{ product.review_count|default:"142" }})</span>
+      </div>
+      <span class="product-card__chip">{{ product.default_size_label }}</span>
+    </div>
+
+    <a href="{{ product.get_absolute_url }}" class="product-card__title-link">
+      <h3 class="product-card__name">{{ product.name }}</h3>
+    </a>
+
+    <div class="product-card__sub-spec">Stone-ground fresh · No preservatives</div>
+
+    <div class="product-card__price">
+      <span class="product-card__price-current">₹{{ product.price }}</span>
+      {% if product.mrp and product.mrp > product.price %}
+        <span class="product-card__price-mrp">₹{{ product.mrp|floatformat:0 }}</span>
+        <span class="product-card__price-discount">{{ product.discount_percent }}% off</span>
+      {% endif %}
+    </div>
+
+    {% if product.is_low_stock %}
+      <p class="product-card__stock-note text-amber-700">Only {{ product.stock_quantity }} left in batch</p>
+    {% elif not product.is_in_stock %}
+      <p class="product-card__stock-note text-red-700">Out of stock</p>
+    {% endif %}
+
+    {% if product.is_in_stock %}
+    <form method="post" action="/cart/add/" hx-post="/cart/add/" hx-target="#cart-icon" hx-swap="outerHTML" class="product-card__add-btn">
+      {% csrf_token %}
+      <input type="hidden" name="product_id" value="{{ product.pk }}">
+      <input type="hidden" name="quantity" value="1">
+      <button type="submit" class="btn btn-primary btn-sm btn-full product-add-btn" id="add-to-cart-{{ product.pk }}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="mr-1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        <span>Add to Cart</span>
+      </button>
+    </form>
+    {% else %}
+    <button class="btn btn-sm btn-full mt-2" disabled style="opacity:0.4;">Out of Stock</button>
+    {% endif %}
+  </div>
+</div>

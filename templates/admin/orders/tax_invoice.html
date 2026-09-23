@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice - {{ order.invoice_number|default:order.order_number }} - Mahila Udyog Magic Masala</title>
+    <style>
+        :root {
+            --brand-primary: #8B1E1E;
+            --brand-dark: #1E0E0B;
+            --text-main: #0F172A;
+            --text-muted: #475569;
+            --border-dark: #1E293B;
+            --border-light: #CBD5E1;
+            --bg-subtle: #F8FAFC;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            line-height: 1.4;
+            font-size: 13px;
+            padding: 24px;
+        }
+
+        /* Screen Action Bar (Hidden in Print) */
+        .admin-action-bar {
+            max-width: 860px;
+            margin: 0 auto 20px auto;
+            background: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .action-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tag-badge {
+            background: #0f766e;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #8B1E1E;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #6e1515;
+        }
+
+        .btn-outline {
+            background: #ffffff;
+            color: #334155;
+            border: 1px solid var(--border-light);
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+        }
+
+        /* Printable Invoice Canvas */
+        .invoice-sheet {
+            max-width: 860px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 2px solid var(--border-dark);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            padding: 24px 28px;
+            position: relative;
+        }
+
+        /* Top Compliance Bar: GSTIN, FSSAI & Helpline */
+        .compliance-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-dark);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .compliance-bar .badge-highlight {
+            font-family: 'Courier New', Courier, monospace;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-light);
+            color: #0f172a;
+        }
+
+        /* Firm Header */
+        .firm-header {
+            text-align: center;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 14px;
+        }
+
+        .firm-brand {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--brand-primary);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .firm-legal-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin-top: 2px;
+        }
+
+        .firm-desc {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .firm-address {
+            font-size: 11.5px;
+            color: #334155;
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        .invoice-title-tag {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 24px;
+            background: var(--brand-primary);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 4px;
+        }
+
+        /* Invoice & Customer Meta Grid */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 18px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+
+        .meta-column h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--brand-primary);
+            font-weight: 800;
+            margin-bottom: 6px;
+            border-bottom: 1px dashed var(--border-light);
+            padding-bottom: 3px;
+        }
+
+        .meta-row {
+            display: flex;
+            margin-bottom: 4px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .meta-label {
+            width: 110px;
+            color: var(--text-muted);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .meta-value {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .invoice-num-highlight {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--brand-primary);
+        }
+
+        /* Items Table */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1.5px solid var(--border-dark);
+            margin-bottom: 0;
+            font-size: 12.5px;
+        }
+
+        .items-table th {
+            background: #f1f5f9;
+            border: 1px solid var(--border-dark);
+            border-bottom: 2px solid var(--border-dark);
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            color: #1e293b;
+        }
+
+        .items-table td {
+            border: 1px solid var(--border-light);
+            border-left: 1px solid var(--border-dark);
+            border-right: 1px solid var(--border-dark);
+            padding: 8px 10px;
+            vertical-align: middle;
+        }
+
+        .items-table tr:nth-child(even) td {
+            background-color: #fafbfc;
+        }
+
+        .col-sno { width: 5%; text-align: center; }
+        .col-desc { width: 45%; }
+        .col-hsn { width: 12%; text-align: center; font-family: monospace; font-weight: 700; }
+        .col-qty { width: 8%; text-align: center; font-weight: 700; }
+        .col-rate { width: 14%; text-align: right; }
+        .col-total { width: 16%; text-align: right; font-weight: 700; }
+
+        /* Calculation & Payment Breakdown Section */
+        .summary-split {
+            display: grid;
+            grid-template-columns: 52% 48%;
+            border: 1.5px solid var(--border-dark);
+            border-top: none;
+            margin-bottom: 14px;
+        }
+
+        .summary-left {
+            border-right: 1.5px solid var(--border-dark);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .payment-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+        }
+
+        .payment-box-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #0f172a;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .payment-badge {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 9999px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .payment-badge--paid {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+
+        .payment-badge--cod {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fcd34d;
+        }
+
+        .payment-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .payment-line.highlight {
+            font-weight: 800;
+            font-size: 12.5px;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 4px;
+            margin-top: 4px;
+        }
+
+        .bank-details-mini {
+            font-size: 11.5px;
+            color: #475569;
+            line-height: 1.45;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 6px 10px;
+        }
+
+        .amount-in-words-box {
+            margin-top: 8px;
+            font-size: 11.5px;
+            font-style: italic;
+            color: #1e293b;
+            padding: 4px 6px;
+            border-left: 3px solid var(--brand-primary);
+            background: #fafaf9;
+        }
+
+        .summary-right {
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 12px;
+        }
+
+        .calc-label {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .calc-val {
+            font-weight: 700;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            color: #0f172a;
+        }
+
+        .grand-total-row {
+            background: #f8fafc;
+            border-top: 2px solid var(--border-dark);
+            border-bottom: none;
+            padding: 10px 12px;
+            margin-top: auto;
+        }
+
+        .grand-total-row .calc-label {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--brand-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .grand-total-row .calc-val {
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--brand-primary);
+        }
+
+        /* HSN Tax Breakdown Section (Clean GST Compliance) */
+        .hsn-container {
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .hsn-header {
+            background: #f8fafc;
+            padding: 5px 10px;
+            font-weight: 800;
+            font-size: 11px;
+            color: #334155;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .hsn-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .hsn-table th, .hsn-table td {
+            border: 1px solid #e2e8f0;
+            padding: 4px 8px;
+            text-align: right;
+        }
+
+        .hsn-table th {
+            background: #fafbfc;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .hsn-table th:first-child, .hsn-table td:first-child {
+            text-align: center;
+        }
+
+        /* Footer & Signatures */
+        .invoice-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-top: 1px solid var(--border-light);
+            padding-top: 12px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .footer-terms {
+            max-width: 480px;
+            line-height: 1.4;
+        }
+
+        .signature-block {
+            text-align: center;
+            width: 200px;
+        }
+
+        .sign-company {
+            font-weight: 800;
+            color: var(--brand-primary);
+            font-size: 11.5px;
+            margin-bottom: 36px;
+        }
+
+        .sign-rule {
+            border-top: 1px solid #0f172a;
+            padding-top: 3px;
+            font-weight: 700;
+            color: #334155;
+            font-size: 11px;
+        }
+
+        /* Print Media Styles */
+        @media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                color: #000000 !important;
+            }
+
+            .admin-action-bar {
+                display: none !important;
+            }
+
+            .invoice-sheet {
+                border: 1.5px solid #000000 !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 16px 20px !important;
+            }
+
+            .items-table, .summary-split, .items-table th, .items-table td, .summary-left {
+                border-color: #000000 !important;
+            }
+
+            .firm-brand, .invoice-title-tag, .grand-total-row .calc-label, .grand-total-row .calc-val {
+                color: #000000 !important;
+            }
+
+            .invoice-title-tag {
+                background: #000000 !important;
+                color: #ffffff !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Admin Action Bar -->
+    <div class="admin-action-bar">
+        <div class="action-bar-left">
+            <span class="tag-badge">Official GST Tax Invoice</span>
+            <strong style="color: #8B1E1E;">MU Magic Masala</strong>
+            <span style="color: #cbd5e1;">|</span>
+            <span style="font-weight: 600;">Order #{{ order.order_number }}</span>
+        </div>
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="window.print()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg> Print / Save PDF
+            </button>
+            <a href="{% url 'admin:orders_order_change' order.id %}" class="btn btn-outline">
+                ← Back to Order
+            </a>
+        </div>
+    </div>
+
+    <!-- Printable Invoice Sheet -->
+    <div class="invoice-sheet" id="invoiceSheet">
+        
+        <!-- Top Compliance Bar -->
+        <div class="compliance-bar">
+            <div>
+                GSTIN: <span class="badge-highlight">{{ site_settings.gstin|default:"09ALVPP8219Q1ZW" }}</span>
+            </div>
+            <div>
+                FSSAI Lic. No.: <span class="badge-highlight">12723058000110</span>
+            </div>
+            <div>
+                Helpline: {{ site_settings.support_phone|default:"9410265521" }}
+            </div>
+        </div>
+
+        <!-- Center Firm Header -->
+        <div class="firm-header">
+            <div class="firm-brand">MU MAGIC MASALA</div>
+            <div class="firm-legal-name">{{ site_settings.legal_firm_name|default:"Mahila Udhyog" }}</div>
+            <div class="firm-desc">Artisanal Stone-Ground Spices, Handcrafted Blends & Traditional Pickles</div>
+            <div class="firm-address">
+                MOHALLA MOHAN, CHITRAGUPT COLONY, PULIYA NO. 3, KASGANJ, Kanshiramnagar, Uttar Pradesh — 207123<br>
+                Email: {{ site_settings.support_email|default:"Mahilaudyogmagic@gmail.com" }} &nbsp;|&nbsp; Web: https://mumagicmasala.com
+            </div>
+            <div>
+                <span class="invoice-title-tag">TAX INVOICE / CASH BILL</span>
+            </div>
+        </div>
+
+        <!-- Invoice & Customer Metadata -->
+        <div class="meta-grid">
+            <!-- Left: Billed To / Shipping Address -->
+            <div class="meta-column">
+                <h4>Customer & Shipping Details</h4>
+                <div class="meta-row">
+                    <span class="meta-label">Customer Name:</span>
+                    <span class="meta-value">{{ order.shipping_full_name }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Contact Phone:</span>
+                    <span class="meta-value">{{ order.shipping_phone }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Shipping Address:</span>
+                    <span class="meta-value">
+                        {{ order.shipping_address_line1 }}{% if order.shipping_address_line2 %}, {{ order.shipping_address_line2 }}{% endif %}, 
+                        {{ order.shipping_city }} - {{ order.shipping_pincode }}, {{ order.shipping_state }}
+                    </span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Place of Supply:</span>
+                    <span class="meta-value">{{ order.place_of_supply|default:"Uttar Pradesh (09)" }}</span>
+                </div>
+            </div>
+
+            <!-- Right: Invoice & Order Identifiers -->
+            <div class="meta-column">
+                <h4>Invoice & Order Identifiers</h4>
+                <div class="meta-row">
+                    <span class="meta-label">Invoice Number:</span>
+                    <span class="meta-value invoice-num-highlight">{{ order.invoice_number|default:order.order_number }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Invoice Date:</span>
+                    <span class="meta-value">{{ order.invoice_date|default:order.created_at|date:"d/m/Y" }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Order Number:</span>
+                    <span class="meta-value font-mono">#{{ order.order_number }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Order Date:</span>
+                    <span class="meta-value">{{ order.created_at|date:"d M Y, h:i A" }}</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Payment Mode:</span>
+                    <span class="meta-value">
+                        {% if order.payment_method == "online" %}
+                            <strong>Online (Prepaid)</strong>
+                        {% else %}
+                            <strong>Cash on Delivery (COD)</strong>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Itemized Products Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th class="col-sno">#</th>
+                    <th class="col-desc">PARTICULARS / ITEM DESCRIPTION</th>
+                    <th class="col-hsn">HSN CODE</th>
+                    <th class="col-qty">QTY</th>
+                    <th class="col-rate">RATE / PACK</th>
+                    <th class="col-total">TOTAL (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td class="col-sno">{{ forloop.counter }}</td>
+                    <td class="col-desc">
+                        <strong>{{ item.item_name }}</strong>
+                        {% if item.variant %}
+                            <span style="font-size: 11px; color: #64748b;">— Pack of {{ item.variant.size_label|default:item.variant.weight }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-hsn">{{ item.hsn_code|default:"0910" }}</td>
+                    <td class="col-qty">{{ item.quantity }}</td>
+                    <td class="col-rate">₹{{ item.price_at_purchase|floatformat:2 }}</td>
+                    <td class="col-total">₹{{ item.line_total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Summary & Payment Breakdown -->
+        <div class="summary-split">
+            <!-- Left Side: Payment Details & Bank Information -->
+            <div class="summary-left">
+                
+                <!-- Payment Breakdown Box (Prepaid vs COD with 10% Advance) -->
+                <div class="payment-box">
+                    <div class="payment-box-title">
+                        <span>Payment & Settlement Breakdown</span>
+                        {% if order.payment_method == "online" or order.payment_status == "paid" %}
+                            <span class="payment-badge payment-badge--paid">🟢 100% Prepaid Online</span>
+                        {% else %}
+                            <span class="payment-badge payment-badge--cod">🟡 10% Online Advance</span>
+                        {% endif %}
+                    </div>
+
+                    {% if order.payment_method == "online" or order.payment_status == "paid" %}
+                        <div class="payment-line">
+                            <span style="color: #475569;">Payment Method:</span>
+                            <strong>Online Payment (Razorpay / UPI / Card)</strong>
+                        </div>
+                        <div class="payment-line">
+                            <span style="color: #475569;">Amount Paid Online:</span>
+                            <strong style="color: #15803d;">₹{{ order.total|floatformat:2 }}</strong>
+                        </div>
+                        <div class="payment-line highlight">
+                            <span>Balance Due at Delivery:</span>
+                            <span style="color: #15803d; font-size: 13px;">₹0.00 (Fully Settled)</span>
+                        </div>
+                    {% else %}
+                        <div class="payment-line">
+                            <span style="color: #475569;">Payment Method:</span>
+                            <strong>Cash on Delivery (COD)</strong>
+                        </div>
+                        <div class="payment-line">
+                            <span style="color: #475569;">10% Advance Paid Online:</span>
+                            <strong style="color: #15803d;">₹{{ order.advance_amount|floatformat:2 }}</strong>
+                        </div>
+                        <div class="payment-line highlight">
+                            <span style="color: #b45309;">Remaining Payable at Delivery (Cash/UPI):</span>
+                            <span style="color: #b45309; font-size: 13px;">₹{{ order.remaining_amount|floatformat:2 }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Total In Words -->
+                <div class="amount-in-words-box">
+                    <strong>Amount in Words:</strong> {{ amount_in_words }}
+                </div>
+
+                <!-- Bank Info -->
+                <div class="bank-details-mini" style="margin-top: 8px;">
+                    <strong>Bank Account:</strong> {{ site_settings.bank_name|default:"BANK OF BARODA, KASGANJ" }} &nbsp;|&nbsp; 
+                    <strong>A/c No:</strong> {{ site_settings.bank_account_no|default:"27270200000665" }} &nbsp;|&nbsp; 
+                    <strong>IFSC:</strong> {{ site_settings.bank_ifsc_code|default:"BARB0BLYKNJ" }}
+                </div>
+            </div>
+
+            <!-- Right Side: Exact Financial & Tax Calculations -->
+            <div class="summary-right">
+                <div class="calc-row">
+                    <span class="calc-label">Items Subtotal</span>
+                    <span class="calc-val">₹{{ order.subtotal|floatformat:2 }}</span>
+                </div>
+
+                {% if order.discount_amount and order.discount_amount > 0 %}
+                <div class="calc-row" style="color: #15803d;">
+                    <span class="calc-label" style="color: #15803d;">Coupon Discount ({{ order.coupon_code }})</span>
+                    <span class="calc-val" style="color: #15803d;">-₹{{ order.discount_amount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+
+                <div class="calc-row">
+                    <span class="calc-label">Taxable Value</span>
+                    <span class="calc-val">₹{{ order.taxable_amount|floatformat:2 }}</span>
+                </div>
+
+                {% if is_interstate %}
+                <div class="calc-row">
+                    <span class="calc-label">Integrated GST (IGST @ 5%)</span>
+                    <span class="calc-val">₹{{ order.igst_amount|floatformat:2 }}</span>
+                </div>
+                {% else %}
+                <div class="calc-row">
+                    <span class="calc-label">Central GST (CGST @ 2.5%)</span>
+                    <span class="calc-val">₹{{ order.cgst_amount|floatformat:2 }}</span>
+                </div>
+                <div class="calc-row">
+                    <span class="calc-label">State GST (SGST @ 2.5%)</span>
+                    <span class="calc-val">₹{{ order.sgst_amount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+
+                <div class="calc-row">
+                    <span class="calc-label">Delivery & Shipping</span>
+                    <span class="calc-val">
+                        {% if order.shipping_charge and order.shipping_charge > 0 %}
+                            ₹{{ order.shipping_charge|floatformat:2 }}
+                        {% else %}
+                            <span style="color: #15803d; font-weight: 800;">FREE</span>
+                        {% endif %}
+                    </span>
+                </div>
+
+                {% if order.cod_charge_applied and order.cod_charge_applied > 0 %}
+                <div class="calc-row">
+                    <span class="calc-label">COD Convenience Fee</span>
+                    <span class="calc-val">₹{{ order.cod_charge_applied|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+
+                <!-- Grand Total -->
+                <div class="calc-row grand-total-row">
+                    <span class="calc-label">Total Payable Amount</span>
+                    <span class="calc-val">₹{{ order.total|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- HSN Summary Table (GST Return Requirement) -->
+        <div class="hsn-container">
+            <div class="hsn-header">
+                GST Tax Summary (HSN / SAC Breakdown)
+            </div>
+            <table class="hsn-table">
+                <thead>
+                    <tr>
+                        <th>HSN Code</th>
+                        <th>Taxable Value</th>
+                        {% if is_interstate %}
+                        <th>IGST Rate</th>
+                        <th>IGST Amount</th>
+                        {% else %}
+                        <th>CGST Rate</th>
+                        <th>CGST Amount</th>
+                        <th>SGST Rate</th>
+                        <th>SGST Amount</th>
+                        {% endif %}
+                        <th>Total Tax</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in hsn_list %}
+                    <tr>
+                        <td><strong>{{ h.hsn }}</strong></td>
+                        <td>₹{{ h.taxable_value|floatformat:2 }}</td>
+                        {% if is_interstate %}
+                        <td>{{ h.gst_rate }}%</td>
+                        <td>₹{{ h.igst_amount|floatformat:2 }}</td>
+                        {% else %}
+                        <td>{{ tax_rate_label }}%</td>
+                        <td>₹{{ h.cgst_amount|floatformat:2 }}</td>
+                        <td>{{ tax_rate_label }}%</td>
+                        <td>₹{{ h.sgst_amount|floatformat:2 }}</td>
+                        {% endif %}
+                        <td><strong>₹{{ h.total_tax|floatformat:2 }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Notice & Signatures -->
+        <div class="invoice-footer">
+            <div class="footer-terms">
+                • Food Safety & Standards Authority of India (FSSAI) Lic. No. <strong>12723058000110</strong>.<br>
+                • Fresh stone-ground artisanal spices packed in hygienic conditions.<br>
+                • All disputes are subject to <strong>Kasganj (U.P.)</strong> jurisdiction only. E. & O. E.
+            </div>
+            <div class="signature-block">
+                <div class="sign-company">For {{ site_settings.legal_firm_name|default:"Mahila Udhyog" }}</div>
+                <div class="sign-rule">Authorised Signatory</div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
