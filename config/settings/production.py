@@ -63,6 +63,11 @@ elif env.bool("USE_CLOUDINARY", default=False):  # noqa: F405
         api_secret=env("CLOUDINARY_API_SECRET"),  # noqa: F405
     )
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+else:
+    # Production VPS local media served directly by Nginx at /media/
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "media"  # noqa: F405
 
 # ---------------------------------------------------------------------------
 # Sentry

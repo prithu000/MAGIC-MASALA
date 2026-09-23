@@ -21,10 +21,8 @@ venv.bak/
 *.sqlite3-journal
 db.sqlite3
 
-# Django media & static collection
-media/
+# Django static collection
 staticfiles/
-ckeditor_uploads/
 
 # Logs
 *.log
